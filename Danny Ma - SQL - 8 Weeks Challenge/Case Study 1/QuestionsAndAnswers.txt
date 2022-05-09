@@ -4,37 +4,55 @@
 
 -- 1. What is the total amount each customer spent at the restaurant?
 
-/*select dannys_diner.sales.customer_id, sum(dannys_diner.menu.price)
+TOTAL AMOUNT OF EACH CUSTOMER SPENT AT THE RESTAURANT We use the SUM and GROUP BY functions to find out total spent for each customer and JOIN function because customer_id is from sales table and price is from menu table. 
+Answer:
+• Customer A spent $76. 
+• Customer B spent $74. 
+• Customer C spent $36
+
+select dannys_diner.sales.customer_id, sum(dannys_diner.menu.price)
 from dannys_diner.sales join dannys_diner.menu
 on sales.product_id = menu.product_id
-group by sales.customer_id; */
+group by sales.customer_id
+order by sales.customer_id;
 
 -- 2. How many days has each customer visited the restaurant?
-/*select dannys_diner.sales.customer_id, count(distinct(dannys_diner.sales.order_date))
+Use DISTINCT and wrap with COUNT function to find out number of days customer visited the restaurant. If we do not use DISTINCT for order_date, the number of days may be repeated. For example, if customer A visited the restaurant twice on ‘2021–01–07’, then number of days may have counted as 2 instead of 1 day. 
+Answer: 
+• Customer A visited 4 times. 
+• Customer B visited 6 times. 
+• Customer C visited 2 times.
+
+select dannys_diner.sales.customer_id, count(distinct(dannys_diner.sales.order_date))
 from dannys_diner.sales
-group by dannys_diner.sales.customer_id */
+group by dannys_diner.sales.customer_id;
 
 -- 3. What was the first item from the menu purchased by each customer?
-/*
+First we have to join sales and product table on product id and need to get the first order date using min() from the sales table using inner query and print the outcome. 
+Answer: 
+• Customer A’s first order are curry and sushi. 
+• Customer B’s first order is curry. 
+• Customer C’s first order is ramen
+
 select distinct(dannys_diner.sales.customer_id), dannys_diner.menu.product_name
 from dannys_diner.sales join dannys_diner.menu
 on dannys_diner.sales.product_id = dannys_diner.menu.product_id
 where dannys_diner.sales.order_date =
 (select min(dannys_diner.sales.order_date)
  from dannys_diner.sales)
- order by dannys_diner.sales.customer_id 
-*/
+ order by dannys_diner.sales.customer_id;
  
 -- 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
-/*
+Most number of time the product 'Ramen" has been purchased by the customers.
+
 select dannys_diner.menu.product_name, count(dannys_diner.sales.product_id)
 from dannys_diner.sales join dannys_diner.menu 
 on dannys_diner.sales.product_id = dannys_diner.menu.product_id
 group by dannys_diner.menu.product_name;
-*/
 
 -- 5. Which item was the most popular for each customer?
-/*
+We rank the customer by counting the totals of the product purchased by the customers. From that join the menu table and disply the top product purchased by the customer.Customer A and C’s favourite item is ramen. Customer B enjoys all items in the menu.
+
 select distinct t.customer_id, m.product_name
 from
 (select dannys_diner.sales.customer_id customer_id,
@@ -48,9 +66,10 @@ group by dannys_diner.sales.customer_id, dannys_diner.sales.product_id
 order by dannys_diner.sales.customer_id) as t
 left join dannys_diner.menu m on t.product_id = m.product_id
 where rank_p = 1
-*/
 
 -- 6. Which item was purchased first by the customer after they became a member?
+First we have to partiotion the customer and get the highest order date using max() function by applying the condition order date should be greater than the join date. From that output we have to join the menu table to get the name of the product and display the product which was first purchased by the customer after became a member.
+
 select t.customer_id, p.product_name, t.join_date, t.order_date
 from
 (select s.customer_id,
@@ -71,6 +90,8 @@ on t.product_id = p.product_id
 where order_after_member = 1
 
 -- 7. Which item was purchased just before the customer became a member?
+First we have to partiotion the customer and get the highest order date using max() function by applying the condition order date should be less than the join date. From that output we have to join the menu table to get the name of the product and display the product which was first purchased by the customer after became a member.
+
 select t.customer_id, p.product_name, t.join_date, t.order_date
 from
 (select s.customer_id,
@@ -91,7 +112,8 @@ on t.product_id = p.product_id
 where order_after_member = 1
 
 -- 8. What is the total items and amount spent for each member before they became a member?
-select s.customer_id, sum(p.price)
+
+select s.customer_id, count(distinct(s.product_id)), sum(p.price)
 from dannys_diner.sales s
 join dannys_diner.menu p
 on s.product_id = p.product_id
@@ -102,6 +124,15 @@ group by s.customer_id
 order by s.customer_id
 
 -- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+• Each $1 spent = 10 points. 
+• But, sushi (product_id 1) gets 2x points, meaning each $1 spent = 20 points.
+So, we use CASE WHEN to create conditional statements 
+	• If product_id = 1, then every $1 price multiply by 20 points 
+	• All other product_id that is not 1, multiply $1 by 10 points So, you can see the table below with new column, points.
+Using the table above, we SUM the price, match it to the product_id and SUM the total_points. 
+
+Answer: • Total points for Customer A, B and C are 860, 940 and 360.
+
 select t.customer_id, sum(points) total_points
 from 
 (select s.customer_id,
@@ -116,6 +147,7 @@ group by t.customer_id
 order by total_points desc;
 
 -- 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
+
 select s.customer_id,
 	   cast(s.order_date as date) order_Date,
 	   m.join_date,
