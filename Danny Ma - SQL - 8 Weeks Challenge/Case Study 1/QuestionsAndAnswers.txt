@@ -1,0 +1,180 @@
+/* --------------------
+   Case Study Questions
+   --------------------*/
+
+-- 1. What is the total amount each customer spent at the restaurant?
+
+/*select dannys_diner.sales.customer_id, sum(dannys_diner.menu.price)
+from dannys_diner.sales join dannys_diner.menu
+on sales.product_id = menu.product_id
+group by sales.customer_id; */
+
+-- 2. How many days has each customer visited the restaurant?
+/*select dannys_diner.sales.customer_id, count(distinct(dannys_diner.sales.order_date))
+from dannys_diner.sales
+group by dannys_diner.sales.customer_id */
+
+-- 3. What was the first item from the menu purchased by each customer?
+/*
+select distinct(dannys_diner.sales.customer_id), dannys_diner.menu.product_name
+from dannys_diner.sales join dannys_diner.menu
+on dannys_diner.sales.product_id = dannys_diner.menu.product_id
+where dannys_diner.sales.order_date =
+(select min(dannys_diner.sales.order_date)
+ from dannys_diner.sales)
+ order by dannys_diner.sales.customer_id 
+*/
+ 
+-- 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
+/*
+select dannys_diner.menu.product_name, count(dannys_diner.sales.product_id)
+from dannys_diner.sales join dannys_diner.menu 
+on dannys_diner.sales.product_id = dannys_diner.menu.product_id
+group by dannys_diner.menu.product_name;
+*/
+
+-- 5. Which item was the most popular for each customer?
+/*
+select distinct t.customer_id, m.product_name
+from
+(select dannys_diner.sales.customer_id customer_id,
+ 		dannys_diner.sales.product_id product_id, 
+ 		rank() over (partition by dannys_diner.sales.customer_id
+                     order by
+                     count(dannys_diner.sales.product_id) desc) as
+                     rank_p 
+from dannys_diner.sales 
+group by dannys_diner.sales.customer_id, dannys_diner.sales.product_id
+order by dannys_diner.sales.customer_id) as t
+left join dannys_diner.menu m on t.product_id = m.product_id
+where rank_p = 1
+*/
+
+-- 6. Which item was purchased first by the customer after they became a member?
+select t.customer_id, p.product_name, t.join_date, t.order_date
+from
+(select s.customer_id,
+	   s.product_id,
+	   s.order_date,
+ 	   m.join_date,
+       rank()
+       over (partition by s.customer_id 
+             order by max(s.order_date) asc) as order_after_member
+from dannys_diner.sales s 
+join dannys_diner.members m
+on s.customer_id = m.customer_id
+where s.order_date > m.join_date
+group by s.customer_id, s.product_id, s.order_date, m.join_date
+order by s.customer_id) as t
+left join dannys_diner.menu p
+on t.product_id = p.product_id
+where order_after_member = 1
+
+-- 7. Which item was purchased just before the customer became a member?
+select t.customer_id, p.product_name, t.join_date, t.order_date
+from
+(select s.customer_id,
+	   s.product_id,
+	   s.order_date,
+ 	   m.join_date,
+       rank()
+       over (partition by s.customer_id 
+             order by max(s.order_date) desc) as order_after_member
+from dannys_diner.sales s 
+join dannys_diner.members m
+on s.customer_id = m.customer_id
+where s.order_date < m.join_date
+group by s.customer_id, s.product_id, s.order_date, m.join_date
+order by s.customer_id) as t
+left join dannys_diner.menu p
+on t.product_id = p.product_id
+where order_after_member = 1
+
+-- 8. What is the total items and amount spent for each member before they became a member?
+select s.customer_id, sum(p.price)
+from dannys_diner.sales s
+join dannys_diner.menu p
+on s.product_id = p.product_id
+join dannys_diner.members m
+on s.customer_id = m.customer_id
+where s.order_date < m.join_date
+group by s.customer_id
+order by s.customer_id
+
+-- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+select t.customer_id, sum(points) total_points
+from 
+(select s.customer_id,
+case
+    when p.product_id = 1 then p.price * 20
+    else p.price * 10
+end as points
+from dannys_diner.sales s
+join dannys_diner.menu p 
+on s.product_id = p.product_id) t
+group by t.customer_id
+order by total_points desc;
+
+-- 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
+select s.customer_id,
+	   cast(s.order_date as date) order_Date,
+	   m.join_date,
+       m.join_date + 6 valid_date,
+       date('2021-01-31') last_date,
+       p.product_name,
+       p.price,
+       case 
+       		when s.order_date >= m.join_date and 
+            	 s.order_date <= (m.join_date + 6) then price * 20
+            when p.product_id = 1 then price * 20
+			else price * 10
+       end as points
+from dannys_diner.sales s
+join dannys_diner.members m
+on s.customer_id = m.customer_id
+join dannys_diner.menu p
+on s.product_id = p.product_id
+order by s.customer_id, s.order_date, p.product_name
+
+---11. Joining all the things and display member with 'Y/N' 
+
+select s.customer_id,
+	   s.order_Date,
+	   p.product_name,
+       p.price,
+       case 
+       		when s.order_date >= m.join_date then 'Y'
+            else 'N'
+       end as member
+from dannys_diner.sales s
+join dannys_diner.members m
+on s.customer_id = m.customer_id
+join dannys_diner.menu p
+on s.product_id = p.product_id
+order by s.customer_id, s.order_date, p.product_name
+
+---12. Ranking based on the order's product depends on membership
+
+select s.customer_id,
+	   s.order_Date,
+	   p.product_name,
+       p.price,
+       case 
+       		when s.order_date >= m.join_date then 'Y'
+            else 'N'
+       end as member,
+       case
+       		when s.order_date >= m.join_date then dense_rank() 
+            over(partition by s.customer_id order by s.order_date asc)
+            when s.customer_id
+            not in (select a.customer_id 
+                    from dannys_diner.members a) then null
+            else null
+            
+       end ranking
+from dannys_diner.sales s
+left join dannys_diner.members m
+on s.customer_id = m.customer_id
+left join dannys_diner.menu p
+on s.product_id = p.product_id
+order by s.customer_id, s.order_date, p.product_name
