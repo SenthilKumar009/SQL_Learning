@@ -1,0 +1,146 @@
+Case Study Questions
+This case study has LOTS of questions - they are broken up by area of focus including:
+
+Pizza Metrics
+Runner and Customer Experience
+Ingredient Optimisation
+Pricing and Ratings
+Bonus DML Challenges (DML = Data Manipulation Language)
+Each of the following case study questions can be answered using a single SQL statement.
+
+Again, there are many questions in this case study - please feel free to pick and choose which ones you’d like to try!
+
+Before you start writing your SQL queries however - you might want to investigate the data, you may want to do something with some of those null values 
+and data types in the customer_orders and runner_orders tables!
+
+A. Pizza Metrics:
+-----------------
+1. How many pizzas were ordered?
+	select count(order_id) from customer_orders;
+
+2. How many unique customer orders were made?
+	select count(distinct(customer_id)) from customer_orders;
+	
+3. How many successful orders were delivered by each runner?
+	select runner_id, count(runner_id) 
+	from pizza_runner.runner_orders 
+	where pickup_time !='null'
+	group by runner_id
+	order by runner_id;
+	
+4. How many of each type of pizza was delivered?
+	select p.pizza_name, count(c.pizza_id)
+	from pizza_runner.customer_orders c
+	join pizza_runner.runner_orders r on c.order_id = r.order_id
+	join pizza_runner.pizza_names p on p.pizza_id = c.pizza_id
+	where r.pickup_time !='null'
+	group by c.pizza_id, p.pizza_name
+	order by c.pizza_id;
+
+5. How many Vegetarian and Meatlovers were ordered by each customer?
+	select c.customer_id, p.pizza_name, count(p.pizza_id)
+	from customer_orders c
+	join pizza_names p 
+	on c.pizza_id = p.pizza_id
+	group by c.customer_id, p.pizza_name
+	order by c.customer_id;
+	
+6. What was the maximum number of pizzas delivered in a single order?
+	select c.order_id, count(p.pizza_id)
+	from pizza_runner.customer_orders c
+	join pizza_runner.pizza_names p 
+	on c.pizza_id = p.pizza_id
+	join pizza_runner.runner_orders r
+	on r.order_id = c.order_id
+	where r.distance != 'null'
+	group by c.order_id
+	order by c.order_id;
+
+7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+select c.customer_id,
+sum(
+	CASE WHEN c.exclusions <> '0' OR c.extras <> '0' THEN 1
+	ELSE 0
+	END) as at_least_1_change,
+sum(
+	CASE WHEN c.exclusions = '0' OR c.extras = '0' THEN 1
+	ELSE 0
+	END) as no_change
+from pizza_runner.customer_orders c
+join pizza_runner.runner_orders r
+on c.order_id = r.order_id
+where r.distance != 'null'
+group by c.customer_id
+order by c.customer_id;
+	
+Note: Need to update the empty and null values with zero then execute the above query.
+
+8. How many pizzas were delivered that had both exclusions and extras?
+	select * from customer_orders 
+	where exclusions != '0' and extras != '0';
+	
+	Note: Need to update the empty and null values with zero then execute the above query.
+
+9. What was the total volume of pizzas ordered for each hour of the day?
+
+	select EXTRACT(HOUR from order_time) as hour_of_day, count(EXTRACT(HOUR from order_time))
+	from pizza_runner.customer_orders
+	group by hour_of_day
+	order by hour_of_day;
+
+10. What was the volume of orders for each day of the week?
+	with week_day as
+	(select EXTRACT(DOW from order_time) as day_of_day, 
+			count(EXTRACT(HOUR from order_time)) as Total_orders
+	from pizza_runner.customer_orders
+	group by day_of_day
+	order by day_of_day
+	)
+	select 
+		CASE 
+			WHEN week_day.day_of_day = 1 THEN 'Sunday'
+			WHEN week_day.day_of_day = 2 THEN 'Monday'
+			WHEN week_day.day_of_day = 3 THEN 'Tueday'
+			WHEN week_day.day_of_day = 4 THEN 'Wednesday'
+			WHEN week_day.day_of_day = 5 THEN 'Thursday'
+			WHEN week_day.day_of_day = 6 THEN 'Friday'
+			ELSE 'Saturday'
+		END as WeekDay,
+		Total_Orders
+	from week_day;
+
+B. Runner and Customer Experience:
+----------------------------------
+1. How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
+	with weeks_signup as
+	(
+		select DATE_PART('week', registration_date) registration_week,
+		count(runner_id) total_sign_up
+		from pizza_runner.runners
+		group by DATE_PART('week', registration_date)
+	)
+	select 
+		CASE 
+			WHEN registration_week > 52 Then 1
+			ELSE registration_week
+			END as RegistrationWeek,
+			total_sign_up
+	from weeks_signup;
+
+2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
+	select distinct o.order_id, o.order_time, r.pickup_time,
+(DATE_PART('day', (TO_TIMESTAMP(pickup_time, 'YYYY-MM-DD HH24:MI:SS'))::timestamp - order_time ::timestamp) * 24 +
+ DATE_PART('hour', (TO_TIMESTAMP(pickup_time, 'YYYY-MM-DD HH24:MI:SS'))::timestamp - order_time ::timestamp)) *
+ DATE_PART('minute',(TO_TIMESTAMP(pickup_time, 'YYYY-MM-DD HH24:MI:SS'))::timestamp - order_time ::timestamp)
+from pizza_runner.customer_orders o
+join pizza_runner.runner_orders r
+on o.order_id = r.order_id
+where r.pickup_time <> 'null'
+order by o.order_id;
+
+3. Is there any relationship between the number of pizzas and how long the order takes to prepare?
+
+4. What was the average distance travelled for each customer?
+5. What was the difference between the longest and shortest delivery times for all orders?
+6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
+7. What is the successful delivery percentage for each runner?
