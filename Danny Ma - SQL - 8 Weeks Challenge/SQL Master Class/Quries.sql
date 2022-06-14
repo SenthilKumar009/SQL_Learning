@@ -254,4 +254,408 @@ group by member_id
 having sum(quantity) < 500
 order by Total_Sold_Qty desc;
 
-/* Q9:  */
+/* Q9:  What is the total Bitcoin quantity for each member_id owns after adding all of the BUY and SELL transactions 
+		from the transactions table? Sort the output by descending total quantity*/
+
+select member_id,
+		sum(case  
+		   		when ticker = 'BTC' then
+		   			 case when txn_type = 'BUY' then quantity else 0 end
+		    end) - 
+		sum(case  
+		   		when ticker = 'BTC' then
+		   			 case when txn_type = 'SELL' then quantity else 0 end
+		    end) as RemQty
+from trading.transactions
+where ticker = 'BTC'
+group by member_id
+order by RemQty desc;
+
+select member_id,
+	   sum(case when txn_type = 'BUY' then quantity
+	       		when txn_type = 'SELL' then -quantity
+		   end) as RemQuantity
+from trading.transactions
+where ticker = 'BTC'
+group by member_id
+order by RemQuantity desc;
+
+/* Q10: Which member_id has the highest buy to sell ratio by quantity? */
+
+select member_id,
+	   sum(case when txn_type = 'BUY' then quantity end) /
+	   sum(case when txn_type = 'SELL' then quantity end)
+	   as Buy_Sell_Ratio
+from trading.transactions
+group by member_id
+order by Buy_Sell_Ratio desc
+
+/* Q11: For each member_id - which month had the highest total Ethereum quantity sold`? */
+
+with cte_ranked as (
+select  member_id,
+		date_trunc('MON', txn_date)::DATE as CalendarMonth,
+		sum(quantity) SoldQuantity,
+		rank() over (partition by member_id order by sum(quantity) desc) as month_rank
+from trading.transactions
+where ticker = 'ETH' and txn_type = 'SELL'
+group by member_id, CalendarMonth)
+select member_id, CalendarMonth, SoldQuantity
+from cte_ranked
+where month_rank = 1
+order by member_id, CalendarMonth;
+
+/* Step 5 - Let the Data Analysis Begin */
+select * from trading.prices;
+select * from trading.members;
+select * from trading.transactions;
+
+/* Q1: What is the earliest and latest date of transactions for all members? */
+select min(txn_date) as earliest_transaction,
+	   max(txn_date) as latest_transaction
+from trading.transactions;
+
+/* Q2: What is the range of market_date values available in the prices data? */
+select min(market_date) as earliest_transaction,
+	   max(market_date) as latest_transaction
+from trading.prices;
+
+/* Q3: Which top 3 mentors have the most Bitcoin quantity as of the 29th of August? */
+select m.first_name,
+	   sum(case when t.txn_type = 'BUY' then t.quantity
+	       		when t.txn_type = 'SELL' then -t.quantity
+		   end) as RemQuantity
+from trading.transactions t
+join trading.members m
+on t.member_id = m.member_id
+where t.ticker = 'BTC'
+group by m.first_name
+order by RemQuantity desc
+limit 3;
+
+/* Q4: What is total value of all Ethereum portfolios for each region at the end date of our analysis? Order the output by descending portfolio value */
+WITH cte_latest_price AS (
+  SELECT
+    ticker,
+    price
+  FROM trading.prices
+  WHERE ticker = 'ETH'
+  AND market_date = '2021-08-29'
+)
+SELECT
+  members.region,
+  SUM(
+    CASE
+      WHEN transactions.txn_type = 'BUY'  THEN transactions.quantity
+      WHEN transactions.txn_type = 'SELL' THEN -transactions.quantity
+    END
+  ) * cte_latest_price.price AS ethereum_value,
+  AVG(
+    CASE
+      WHEN transactions.txn_type = 'BUY'  THEN transactions.quantity
+      WHEN transactions.txn_type = 'SELL' THEN -transactions.quantity
+    END
+  ) * cte_latest_price.price AS avg_ethereum_value
+FROM trading.transactions
+INNER JOIN cte_latest_price
+  ON transactions.ticker = cte_latest_price.ticker
+INNER JOIN trading.members
+  ON transactions.member_id = members.member_id
+WHERE transactions.ticker = 'ETH'
+GROUP BY members.region, cte_latest_price.price
+ORDER BY avg_ethereum_value DESC;
+
+/* Q5: What is the average value of each Ethereum portfolio in each region? Sort this output in descending order */
+WITH cte_latest_price AS (
+  SELECT
+    ticker,
+    price
+  FROM trading.prices
+  WHERE ticker = 'ETH'
+  AND market_date = '2021-08-29'
+)
+SELECT
+  members.region,
+  SUM(
+    CASE
+      WHEN transactions.txn_type = 'BUY'  THEN transactions.quantity
+      WHEN transactions.txn_type = 'SELL' THEN -transactions.quantity
+    END
+  ) * cte_latest_price.price AS ethereum_value,
+  AVG(
+    CASE
+      WHEN transactions.txn_type = 'BUY'  THEN transactions.quantity
+      WHEN transactions.txn_type = 'SELL' THEN -transactions.quantity
+    END
+  ) * cte_latest_price.price AS avg_ethereum_value
+FROM trading.transactions
+INNER JOIN cte_latest_price
+  ON transactions.ticker = cte_latest_price.ticker
+INNER JOIN trading.members
+  ON transactions.member_id = members.member_id
+WHERE transactions.ticker = 'ETH'
+GROUP BY members.region, cte_latest_price.price
+ORDER BY avg_ethereum_value DESC;
+
+/* Second way */
+WITH cte_latest_price AS (
+  SELECT
+    ticker,
+    price
+  FROM trading.prices
+  WHERE ticker = 'ETH'
+  AND market_date = '2021-08-29'
+),
+cte_calculations AS (
+SELECT
+  members.region,
+  SUM(
+    CASE
+      WHEN transactions.txn_type = 'BUY'  THEN transactions.quantity
+      WHEN transactions.txn_type = 'SELL' THEN -transactions.quantity
+    END
+  ) * cte_latest_price.price AS ethereum_value,
+  COUNT(DISTINCT members.member_id) AS mentor_count
+FROM trading.transactions
+INNER JOIN cte_latest_price
+  ON transactions.ticker = cte_latest_price.ticker
+INNER JOIN trading.members
+  ON transactions.member_id = members.member_id
+WHERE transactions.ticker = 'ETH'
+GROUP BY members.region, cte_latest_price.price
+)
+-- final output
+SELECT
+  *,
+  ethereum_value / mentor_count AS avg_ethereum_value
+FROM cte_calculations
+ORDER BY avg_ethereum_value DESC;
+
+/* Step 6 - Planning Ahead for Data Analysis */
+/* Q1:  Questions 1-4
+
+What is the total portfolio value for each mentor at the end of 2020?
+
+What is the total portfolio value for each region at the end of 2019?
+
+What percentage of regional portfolio values does each mentor contribute at the end of 2018?
+
+Does this region contribution percentage change when we look across both Bitcoin and Ethereum portfolios independently at the end of 2017? */
+
+-- Create a base table
+-- Step 1
+-- Create a base table that has each mentor's name, region and end of year total quantity for each ticker
+
+select * from trading.prices;
+select * from trading.members;
+select * from trading.transactions;
+
+DROP TABLE IF EXISTS temp_portfolio_base;
+CREATE TEMP TABLE temp_portfolio_base AS
+with cte_joined_data as
+(select
+	  m.first_name,
+	  m.region,
+	  t.ticker,
+ 	  t.txn_date,
+	  case when t.txn_type = 'SELL' then -t.quantity
+	  	   	   else t.quantity
+	  end as Adjusted_Quantity
+from trading.transactions t
+join trading.members m
+on t.member_id = m.member_id
+where t.txn_date <= '2020-12-31')
+select first_name,
+	   region,
+	   (DATE_TRUNC('YEAR', txn_date) + INTERVAL '12 MONTHS' - INTERVAL '1 DAY') :: DATE as year_end, 
+	   ticker,
+	   sum(Adjusted_Quantity) Total_Qty
+from cte_joined_data
+group by first_name, region, year_end, ticker;
+
+select 
+	  year_end,
+	  ticker,
+	  total_qty as yearly_Qty
+	  --cumulative_quantity
+from temp_portfolio_base
+where first_name ='Abe'
+order by ticker, year_end;
+
+select * from temp_portfolio_base
+
+select 
+	  year_end,
+	  ticker,
+	  total_qty as yearly_Qty,
+	  sum(total_qty) 
+	  OVER (partition by first_name, ticker
+		    order by year_end
+		    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) as Cumulative_Qty
+from temp_portfolio_base
+where first_name ='Abe'
+order by ticker;
+
+ALTER TABLE temp_portfolio_base
+ADD cumulative_quantity NUMERIC;
+
+-- update new column with data
+UPDATE temp_portfolio_base
+SET (cumulative_quantity) = (
+  SELECT
+      SUM(total_qty) OVER (
+    PARTITION BY first_name, ticker
+    ORDER BY year_end
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+  )
+);
+
+select 
+	  year_end,
+	  ticker,
+	  total_qty as yearly_Qty,
+	  cumulative_quantity
+from temp_portfolio_base
+where first_name ='Abe'
+order by ticker, year_end;
+
+DROP TABLE IF EXISTS temp_cumulative_portfolio_base;
+CREATE TEMP TABLE temp_cumulative_portfolio_base AS
+SELECT
+  first_name,
+  region,
+  year_end,
+  ticker,
+  total_qty,
+  SUM(total_qty) OVER (
+    PARTITION BY first_name, ticker
+    ORDER BY year_end
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+  ) AS cumulative_quantity
+FROM temp_portfolio_base;
+
+select 
+	  year_end,
+	  ticker,
+	  total_qty as yearly_Qty,
+	  cumulative_quantity
+from temp_portfolio_base
+where first_name ='Abe'
+order by ticker, year_end;
+
+SELECT * FROM temp_cumulative_portfolio_base LIMIT 20;
+
+/* ROWS BETWEEN and UNBOUNDED PRECEDING & CURRENT ROW*/
+select 
+	  year_end,
+	  ticker,
+	  total_qty as yearly_Qty,
+	  sum(total_qty) 
+	  OVER (partition by first_name, ticker
+		    order by year_end
+		    ROWS BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) as Cumulative_Qty
+from temp_portfolio_base
+where first_name ='Abe'
+order by ticker;
+
+/* ROWS BETWEEN and UNBOUNDED PRECEDING & UNBOUNDED FOLLOWING*/
+select 
+	  year_end,
+	  ticker,
+	  total_qty as yearly_Qty,
+	  sum(total_qty) 
+	  OVER (partition by first_name, ticker
+		    order by year_end
+		    ROWS BETWEEN UNBOUNDED PRECEDING and UNBOUNDED FOLLOWING) as Cumulative_Qty
+from temp_portfolio_base
+where first_name ='Abe'
+order by ticker;
+
+/* RANGE BETWEEN and UNBOUNDED PRECEDING & CURRENT ROW */
+select 
+	  year_end,
+	  ticker,
+	  total_qty as yearly_Qty,
+	  sum(total_qty) 
+	  OVER (partition by first_name, ticker
+		    order by year_end
+		    RANGE BETWEEN UNBOUNDED PRECEDING and CURRENT ROW) as Cumulative_Qty
+from temp_portfolio_base
+where first_name ='Abe'
+order by ticker;
+
+/* RANGE BETWEEN and UNBOUNDED PRECEDING & UNBOUNDED FOLLOWING*/
+
+select 
+	  year_end,
+	  ticker,
+	  total_qty as yearly_Qty,
+	  sum(total_qty) 
+	  OVER (partition by first_name, ticker
+		    order by year_end
+		    RANGE BETWEEN UNBOUNDED PRECEDING and UNBOUNDED FOLLOWING) as Cumulative_Qty
+from temp_portfolio_base
+where first_name ='Abe'
+order by ticker;
+
+/* Step 7 - Answering Data Questions */
+
+select * from temp_cumulative_portfolio_base limit 10;
+select * from trading.prices;
+
+/* Q1: What is the total portfolio value for each mentor at the end of 2020? */
+
+select base.first_name,
+	   ROUND(sum(cumulative_quantity * price.price)) as portfolio_value
+from temp_cumulative_portfolio_base as base
+join trading.prices price
+on base.ticker = price.ticker
+and base.year_end = price.market_date
+where base.year_end = '2020-12-31'
+group by base.first_name
+order by portfolio_value desc;
+
+select round(12.98765, 2);
+
+/* Q2: What is the total portfolio value for each region at the end of 2019? */
+select base.region,
+	   sum(base.cumulative_quantity  * p.price) as Portfolio_Value
+from temp_cumulative_portfolio_base as base
+join trading.prices p
+on base.ticker = p.ticker
+and base.year_end = p.market_date
+where base.year_end = '2019-12-31'
+group by base.region
+order by Portfolio_value desc;
+
+/* Q3: What percentage of regional portfolio values does each mentor contribute at the end of 2018? */
+
+with cte_mentor_portfolio as
+(select base.region,
+	    base.first_name,
+	    round(sum(base.cumulative_quantity  * p.price)) as Portfolio_Value
+from temp_cumulative_portfolio_base as base
+join trading.prices p
+on base.ticker = p.ticker
+and base.year_end = p.market_date
+where base.year_end = '2018-12-31'
+group by base.region, base.first_name),
+cte_region_portfolio as
+(select 
+ 	region,
+ 	first_name,
+ 	portfolio_value,
+ 	sum(portfolio_value) over (partition by region) as region_total
+ from cte_mentor_portfolio
+)
+select
+	region,
+	first_name,
+	portfolio_value,
+	region_total,
+	round(100 * portfolio_value / region_total) as Contribution_Percentage
+from cte_region_portfolio
+order by region_total desc, Contribution_Percentage desc;
+
+
+
