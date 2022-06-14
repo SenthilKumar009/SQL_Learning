@@ -328,7 +328,7 @@ select m.first_name,
 from trading.transactions t
 join trading.members m
 on t.member_id = m.member_id
-where t.ticker = 'BTC'
+where t.ticker = 'BTC' --and t.txn_date = '2020-08-29'
 group by m.first_name
 order by RemQuantity desc
 limit 3;
@@ -472,6 +472,7 @@ select first_name,
 	   sum(Adjusted_Quantity) Total_Qty
 from cte_joined_data
 group by first_name, region, year_end, ticker;
+/* Step 2 */
 
 select 
 	  year_end,
@@ -483,6 +484,8 @@ where first_name ='Abe'
 order by ticker, year_end;
 
 select * from temp_portfolio_base
+
+/* Step 3 */
 
 select 
 	  year_end,
@@ -496,6 +499,7 @@ from temp_portfolio_base
 where first_name ='Abe'
 order by ticker;
 
+/* Step 4 */
 ALTER TABLE temp_portfolio_base
 ADD cumulative_quantity NUMERIC;
 
@@ -657,5 +661,69 @@ select
 from cte_region_portfolio
 order by region_total desc, Contribution_Percentage desc;
 
+/* Q4: Does this region contribution percentage change when we look across both Bitcoin and Ethereum portfolios independently at the end of 2017? */
 
+with cte_mentor_portfolio as
+(select base.region,
+	    base.first_name,
+ 		base.ticker,
+	    base.cumulative_quantity  * p.price as Portfolio_Value
+from temp_cumulative_portfolio_base as base
+join trading.prices p
+on base.ticker = p.ticker
+and base.year_end = p.market_date
+where base.year_end = '2017-12-31'),
+cte_region_portfolio as
+(select 
+ 	region,
+ 	first_name,
+ 	ticker,
+ 	portfolio_value,
+ 	sum(portfolio_value) over (partition by ticker,region) as region_total
+ from cte_mentor_portfolio
+)
+select
+	region,
+	first_name,
+	ticker,
+	portfolio_value,
+	region_total,
+	round(100 * portfolio_value / region_total) as Contribution_Percentage
+from cte_region_portfolio
+order by ticker, region, Contribution_Percentage desc;
 
+/* Q5: Calculate the ranks for each mentor in the US and Australia for each year and ticker */
+
+select * from temp_cumulative_portfolio_base;
+
+select year_end,
+	   region,
+	   first_name,
+	   ticker,
+	   rank() over (partition by region, year_end order by cumulative_quantity desc) ranking
+from temp_cumulative_portfolio_base
+where region in ('Australia', 'United States')
+order by year_end, region, ranking;
+
+with cte_ranking as
+(select year_end,
+	   region,
+	   first_name,
+	   ticker,
+	   rank() over (partition by region, year_end order by cumulative_quantity desc) ranking
+from temp_cumulative_portfolio_base
+where region in ('Australia', 'United States')
+order by year_end, region, ranking)
+select region,
+	   first_name,
+	   MAX(CASE WHEN ticker = 'BTC' AND year_end ='2017-12-31' THEN ranking else NULL END) as "BTC 2017",
+	   MAX(CASE WHEN ticker = 'BTC' AND year_end ='2018-12-31' THEN ranking else NULL END) as "BTC 2018",
+	   MAX(CASE WHEN ticker = 'BTC' AND year_end ='2019-12-31' THEN ranking else NULL END) as "BTC 2019",
+	   MAX(CASE WHEN ticker = 'BTC' AND year_end ='2020-12-31' THEN ranking else NULL END) as "BTC 2020",
+	   MAX(CASE WHEN ticker = 'ETH' AND year_end ='2017-12-31' THEN ranking else NULL END) as "ETH 2017",
+	   MAX(CASE WHEN ticker = 'ETH' AND year_end ='2018-12-31' THEN ranking else NULL END) as "ETH 2018",
+	   MAX(CASE WHEN ticker = 'ETH' AND year_end ='2019-12-31' THEN ranking else NULL END) as "ETH 2019",
+	   MAX(CASE WHEN ticker = 'ETH' AND year_end ='2020-12-31' THEN ranking else NULL END) as "ETH 2020"
+from cte_ranking
+group by region, first_name
+order by region
