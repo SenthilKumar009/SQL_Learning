@@ -475,9 +475,50 @@ with temp as
 /* Q18. Which countries have never won gold medal but have won silver/bronze medals?
 Problem Statement: Write a SQL Query to fetch details of countries which have won silver or bronze medal but never won a gold medal.  */
 
+with t1 as
+(select
+	   country,
+	   coalesce(gold,0) as gold,
+	   coalesce(silver,0) as silver,
+	   coalesce(bronze,0) as bronze
+from crosstab
+('select nr.region as country,
+	   oh.medal, 
+	   count(1) as total_medals
+ from olympics_history oh
+ join olympics_history_noc_regions nr
+ on nr.noc = oh.noc
+ where oh.medal <> ''NA''
+ group by nr.region, oh.medal
+ order by nr.region',
+ 'values(''Bronze''), (''Gold''), (''Silver'')')
+ as result(country varchar,
+		   bronze bigint,
+		   gold bigint,
+		   silver bigint))
+select * from t1
+where gold = 0
+order by silver asc, bronze desc
 
 /* Q19. In which Sport/event, India has won highest medals.
 Problem Statement: Write SQL Query to return the sport which has won India the highest no of medals.  */
 
+select oh.event, oh.sport, 
+	   count(1) as total_medals
+from olympics_history oh
+join olympics_history_noc_regions nr
+on oh.noc = nr.noc
+where nr.region = 'India' and medal <> 'NA'
+group by oh.sport, oh.event
+order by total_medals desc;
+
 /* Q20. Break down all olympic games where India won medal for Hockey and how many medals in each olympic games
 Problem Statement: Write an SQL Query to fetch details of all Olympic Games where India won medal(s) in hockey.   */
+
+select team, sport, games, medal,
+	   count(1) as total_medals	
+from olympics_history
+where medal <> 'NA' and
+	  NOC = 'IND'
+group by team, sport, medal, games
+order by total_medals desc
