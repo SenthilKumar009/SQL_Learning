@@ -16,7 +16,7 @@ and data types in the customer_orders and runner_orders tables!
 A. Pizza Metrics:
 -----------------
 1. How many pizzas were ordered?
-	select count(order_id) from customer_orders;
+	select count(order_id) from pizza_runner.customer_orders;
 
 2. How many unique customer orders were made?
 	select count(distinct(customer_id)) from customer_orders;
@@ -139,8 +139,74 @@ where r.pickup_time <> 'null'
 order by o.order_id;
 
 3. Is there any relationship between the number of pizzas and how long the order takes to prepare?
+with pizza_count as
+(
+	select order_id, customer_id, count(order_id) as Total_Pizzas
+	from pizza_runner.customer_orders
+	group by order_id, customer_id
+	order by order_id
+)
+select p.order_id, p.customer_id, p.total_pizzas, r.distance,
+case when r.duration <> 'null' then substring(r.duration, 0,3)
+else r.duration
+end as travel_duration
+from pizza_count p
+join pizza_runner.runner_orders r
+on p.order_id = r.order_id
+
+An order with maximum pizza count which is 23.4 KM away took 40 mins to deliver. 
+Also an order which contain 1 pizza with 25 km distance took 25 mis and 1 pizza with 20 kn took 32 mins. 
+So only the pizza count does not play a role in delivering the order.
 
 4. What was the average distance travelled for each customer?
+with pizza_count as
+(
+	select order_id, customer_id
+	from pizza_runner.customer_orders
+	group by order_id, customer_id
+	order by order_id
+),
+distance_covered as
+(
+	select order_id,
+	case when duration <> 'null' then cast(substring(duration, 0,3) as INTEGER)
+	else 0
+	end as travel_duration
+	from pizza_runner.runner_orders
+) 
+select p.customer_id, round(avg(d.travel_duration), 2)
+from pizza_count p
+join distance_covered d
+on p.order_id = d.order_id
+group by p.customer_id;
+
 5. What was the difference between the longest and shortest delivery times for all orders?
+with pizza_count as
+(
+	select order_id, customer_id
+	from pizza_runner.customer_orders
+	group by order_id, customer_id
+	order by order_id
+),
+distance_covered as
+(
+	select order_id,
+	case when duration <> 'null' then cast(substring(duration, 0,3) as INTEGER)
+	else 0
+	end as travel_duration
+	from pizza_runner.runner_orders
+	where duration <> 'null'
+) 
+select max(d.travel_duration) longest_distance_covered, 
+	   min(d.travel_duration) shortest_distance_covered,
+	   max(d.travel_duration) - min(d.travel_duration) difference_bw_max_min
+from pizza_count p
+join distance_covered d
+on p.order_id = d.order_id;
+
+
+
 6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
+
+
 7. What is the successful delivery percentage for each runner?
