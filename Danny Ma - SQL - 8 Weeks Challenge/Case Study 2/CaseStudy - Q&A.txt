@@ -24,18 +24,16 @@ A. Pizza Metrics:
 3. How many successful orders were delivered by each runner?
 	select runner_id, count(runner_id) 
 	from pizza_runner.runner_orders 
-	where pickup_time !='null'
 	group by runner_id
 	order by runner_id;
 	
 4. How many of each type of pizza was delivered?
 	select p.pizza_name, count(c.pizza_id)
 	from pizza_runner.customer_orders c
-	join pizza_runner.runner_orders r on c.order_id = r.order_id
 	join pizza_runner.pizza_names p on p.pizza_id = c.pizza_id
-	where r.pickup_time !='null'
-	group by c.pizza_id, p.pizza_name
-	order by c.pizza_id;
+	join pizza_runner.runner_orders r on c.order_id = r.order_id
+	WHERE cancellation!='Restaurant Cancellation' AND cancellation!='Customer Cancellation'
+	group by p.pizza_name;
 
 5. How many Vegetarian and Meatlovers were ordered by each customer?
 	select c.customer_id, p.pizza_name, count(p.pizza_id)
@@ -52,7 +50,7 @@ A. Pizza Metrics:
 	on c.pizza_id = p.pizza_id
 	join pizza_runner.runner_orders r
 	on r.order_id = c.order_id
-	where r.distance != 'null'
+	where r.distance > 0
 	group by c.order_id
 	order by c.order_id;
 
@@ -69,17 +67,13 @@ sum(
 from pizza_runner.customer_orders c
 join pizza_runner.runner_orders r
 on c.order_id = r.order_id
-where r.distance != 'null'
+where r.distance > 0
 group by c.customer_id
 order by c.customer_id;
 	
-Note: Need to update the empty and null values with zero then execute the above query.
-
 8. How many pizzas were delivered that had both exclusions and extras?
-	select * from customer_orders 
+	select * from pizza_runner.customer_orders 
 	where exclusions != '0' and extras != '0';
-	
-	Note: Need to update the empty and null values with zero then execute the above query.
 
 9. What was the total volume of pizzas ordered for each hour of the day?
 
@@ -112,31 +106,30 @@ Note: Need to update the empty and null values with zero then execute the above 
 B. Runner and Customer Experience:
 ----------------------------------
 1. How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)
-	with weeks_signup as
-	(
-		select DATE_PART('week', registration_date) registration_week,
-		count(runner_id) total_sign_up
-		from pizza_runner.runners
-		group by DATE_PART('week', registration_date)
-	)
-	select 
-		CASE 
-			WHEN registration_week > 52 Then 1
-			ELSE registration_week
-			END as RegistrationWeek,
-			total_sign_up
-	from weeks_signup;
+WITH CTE AS
+	(SELECT COUNT(runner_id) AS "No. of runners signed up for 1st week period(2020-12-31 to 2021-01-08)" 
+	 FROM pizza_runner.runners
+	 WHERE registration_date BETWEEN '2020-12-31' AND '2021-01-08') 
+,CTE1 AS
+	(SELECT COUNT(runner_id) AS "No. of runners signed up for 2nd week period(2021-01-08 AND 2021-01-14)" 
+	 FROM pizza_runner.runners
+	 WHERE registration_date BETWEEN '2021-01-08' AND '2021-01-14') 
+SELECT * 
+FROM CTE
+NATURAL JOIN CTE1;
 
 2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
-	select distinct o.order_id, o.order_time, r.pickup_time,
-(DATE_PART('day', (TO_TIMESTAMP(pickup_time, 'YYYY-MM-DD HH24:MI:SS'))::timestamp - order_time ::timestamp) * 24 +
- DATE_PART('hour', (TO_TIMESTAMP(pickup_time, 'YYYY-MM-DD HH24:MI:SS'))::timestamp - order_time ::timestamp)) *
- DATE_PART('minute',(TO_TIMESTAMP(pickup_time, 'YYYY-MM-DD HH24:MI:SS'))::timestamp - order_time ::timestamp)
-from pizza_runner.customer_orders o
-join pizza_runner.runner_orders r
-on o.order_id = r.order_id
-where r.pickup_time <> 'null'
-order by o.order_id;
+with cte_avg_time as
+(select runner_id, 
+ 		pickup_time-order_time as "time_taken"
+ from pizza_runner.runner_orders r
+ join pizza_runner.customer_orders c
+ on r.order_id = c.order_id
+ where r.cancellation = '0')
+select runner_id,
+       avg(time_taken) as "avg time taken"
+from cte_avg_time
+group by runner_id
 
 3. Is there any relationship between the number of pizzas and how long the order takes to prepare?
 with pizza_count as
@@ -146,10 +139,7 @@ with pizza_count as
 	group by order_id, customer_id
 	order by order_id
 )
-select p.order_id, p.customer_id, p.total_pizzas, r.distance,
-case when r.duration <> 'null' then substring(r.duration, 0,3)
-else r.duration
-end as travel_duration
+select p.order_id, p.customer_id, p.total_pizzas, r.distance, r.duration
 from pizza_count p
 join pizza_runner.runner_orders r
 on p.order_id = r.order_id
@@ -159,55 +149,23 @@ Also an order which contain 1 pizza with 25 km distance took 25 mis and 1 pizza 
 So only the pizza count does not play a role in delivering the order.
 
 4. What was the average distance travelled for each customer?
-with pizza_count as
-(
-	select order_id, customer_id
-	from pizza_runner.customer_orders
-	group by order_id, customer_id
-	order by order_id
-),
-distance_covered as
-(
-	select order_id,
-	case when duration <> 'null' then cast(substring(duration, 0,3) as INTEGER)
-	else 0
-	end as travel_duration
-	from pizza_runner.runner_orders
-) 
-select p.customer_id, round(avg(d.travel_duration), 2)
-from pizza_count p
-join distance_covered d
-on p.order_id = d.order_id
-group by p.customer_id;
+select customer_id,
+	   round(avg(distance), 2) as "Average distance Travelled"
+from pizza_runner.customer_orders c
+join pizza_runner.runner_orders r
+on c.order_id = r.order_id
+group by c.customer_id
 
 5. What was the difference between the longest and shortest delivery times for all orders?
-with pizza_count as
-(
-	select order_id, customer_id
-	from pizza_runner.customer_orders
-	group by order_id, customer_id
-	order by order_id
-),
-distance_covered as
-(
-	select order_id,
-	case when duration <> 'null' then cast(substring(duration, 0,3) as INTEGER)
-	else 0
-	end as travel_duration
-	from pizza_runner.runner_orders
-	where duration <> 'null'
-) 
-select max(d.travel_duration) longest_distance_covered, 
-	   min(d.travel_duration) shortest_distance_covered,
-	   max(d.travel_duration) - min(d.travel_duration) difference_bw_max_min
-from pizza_count p
-join distance_covered d
-on p.order_id = d.order_id;
+select MIN(duration) as "shortest delivery",
+	   MAX(duration) as "longest delivery"
+from pizza_runner.runner_orders
+where cancellation ='0'
 
 6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
 SELECT runner_id,
 ROUND(AVG(distance/NULLIF(duration, 0)),2)AS "Average speed" 
-FROM runner_orders
+FROM pizza_runner.runner_orders
 GROUP BY runner_id
 ORDER BY runner_id;
 
@@ -216,7 +174,7 @@ with successful_order as
 (
 	select runner_id, count(runner_id) total_successful_order
 	from pizza_runner.runner_orders
-	where duration <> 'null'
+	where duration > 0
 	group by runner_id
 	order by runner_id
 ),
@@ -346,7 +304,6 @@ order_amount as
 	from order_details od
 	join pizza_runner.runner_orders ro
 	on od.order_id = ro.order_id
-	where ro.pickup_time <> 'null'
 	group by od.order_id, ro.runner_id
 )
 select runner_id, sum(order_amount)
@@ -378,7 +335,7 @@ order_amount as
 	from order_details od
 	join pizza_runner.runner_orders ro
 	on od.order_id = ro.order_id
-	where ro.pickup_time <> 'null'
+	--where ro.pickup_time <> 'null'
 	group by od.order_id, ro.runner_id
 )
 select runner_id, count(order_id) total_order, sum(total_order_amount) grand_order_toal 
@@ -390,8 +347,25 @@ order by runner_id
    how would you design an additional table for this new dataset - generate a schema for this new table and insert your own data for ratings for each 
    successful customer order between 1 to 5.
 
-   
-   
+DROP TABLE IF EXISTS pizza_runner.ratings;
+CREATE TABLE pizza_runner.ratings (
+  "order_id" INTEGER,
+  "rating" DECIMAL
+);
+INSERT INTO pizza_runner.ratings
+  ("order_id", "rating")
+VALUES
+  (1, 5),
+  (2, 5),
+  (3, 4.5),
+  (4, 5),
+  (5, 4),
+  (7, 3.5),
+  (8, 5),
+  (10,4);
+
+select * from pizza_runner.ratings;
+ 
    
 4. Using your newly generated table - can you join all of the information together to form a table which has the following information for successful deliveries?
 	* customer_id
@@ -404,8 +378,40 @@ order by runner_id
 	* Delivery duration
 	* Average speed
 	* Total number of pizzas
+	
+WITH CTE AS(
+SELECT runner_id,
+	ROUND(AVG(distance/NULLIF(duration, 0)),2) AS "Average speed" 
+FROM pizza_runner.runner_orders
+GROUP BY runner_id
+ORDER BY runner_id)
+SELECT customer_id, 
+	c.order_id,
+	runner_id,
+	r.rating,
+	c.order_time,
+	pickup_time,
+	pickup_time-order_time AS "Time between order and pickup",
+	duration AS "Delivery duration",
+	"Average speed"
+FROM pizza_runner.customer_orders AS c
+NATURAL JOIN pizza_runner.runner_orders 
+NATURAL JOIN pizza_runner.ratings AS r
+NATURAL JOIN CTE
+
 5. If a Meat Lovers pizza was $12 and Vegetarian $10 fixed prices with no cost for extras and each runner is paid $0.30 per kilometre traveled - 
    how much money does Pizza Runner have left over after these deliveries?
+
+with CTE1 as
+(select order_id, runner_id, sum(distance) * 0.5 as "distance covered amount"
+ from pizza_runner.runner_orders
+ where runner_orders.cancellation != 'Restaurant Cancellation' or runner_orders.cancellation = 'Customer Cancellation'
+ group by order_id, runner_id)
+select CTE1.runner_id, sum(c.pizza_cost) as "total_amount"
+from CTE1
+join pizza_runner.customer_orders c
+on CTE1.order_id = c.order_id
+group by CTE1.runner_id
 
 --------------------------------------------------------------------------------------------------------------------------------------
 E. Bonus Questions
