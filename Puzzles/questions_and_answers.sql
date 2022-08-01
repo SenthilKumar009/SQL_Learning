@@ -77,3 +77,18 @@ WITH CTE1 as
 Select Workflow
 from CTE1
 where TotalSteps - TotalStepsCompleted != 0;
+
+--- Puzzle 7
+Select * from Candidates;
+Select * from Requirements;
+
+select distinct CandidateID, Occupation as Requirement
+from Candidates
+where Occupation in (select * from Requirements)
+
+--- Puzzle 8
+select * from WorkflowCases;
+
+select Workflow, sum(Case1) + sum(Case2) + sum(Case3) as Passed
+from WorkflowCases
+group by Workflow

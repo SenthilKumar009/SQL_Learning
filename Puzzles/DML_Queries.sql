@@ -156,11 +156,11 @@ DDL for Puzzle #7
 Mission to Mars
 */----------------------------------------------------
 
-DROP TABLE IF EXISTS #Candidates;
-DROP TABLE IF EXISTS #Requirements;
+DROP TABLE IF EXISTS Candidates;
+DROP TABLE IF EXISTS Requirements;
 GO
 
-CREATE TABLE #Candidates
+CREATE TABLE Candidates
 (
 CandidateID INTEGER,
 Occupation  VARCHAR(100),
@@ -168,19 +168,19 @@ PRIMARY KEY (CandidateID, Occupation)
 );
 GO
 
-INSERT INTO #Candidates VALUES
+INSERT INTO Candidates VALUES
 (1001,'Geologist'),(1001,'Astrogator'),(1001,'Biochemist'),
 (1001,'Technician'),(2002,'Surgeon'),(2002,'Machinist'),
 (3003,'Cryologist'),(4004,'Selenologist');
 GO
 
-CREATE TABLE #Requirements
+CREATE TABLE Requirements
 (
 Requirement VARCHAR(100) PRIMARY KEY
 );
 GO
 
-INSERT INTO #Requirements VALUES
+INSERT INTO Requirements VALUES
 ('Geologist'),('Astrogator'),('Technician');
 GO
 
@@ -189,10 +189,10 @@ DDL for Puzzle #8
 Workflow Cases
 */----------------------------------------------------
 
-DROP TABLE IF EXISTS #WorkflowCases;
+DROP TABLE IF EXISTS WorkflowCases;
 GO
 
-CREATE TABLE #WorkflowCases
+CREATE TABLE WorkflowCases
 (
 Workflow    VARCHAR(100) PRIMARY KEY,
 Case1       INTEGER,
@@ -201,7 +201,7 @@ Case3       INTEGER
 );
 GO
 
-INSERT INTO #WorkflowCases VALUES
+INSERT INTO WorkflowCases VALUES
 ('Alpha',0,0,0),('Bravo',0,1,1),('Charlie',1,0,0),('Delta',0,0,0);
 GO
 
