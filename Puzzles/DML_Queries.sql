@@ -107,10 +107,10 @@ DDL for Puzzle #5
 Phone Directory
 */----------------------------------------------------
 
-DROP TABLE IF EXISTS #PhoneDirectory;
+DROP TABLE IF EXISTS PhoneDirectory;
 GO
 
-CREATE TABLE #PhoneDirectory
+CREATE TABLE PhoneDirectory
 (
 CustomerID  INTEGER,
 [Type]      VARCHAR(100),
@@ -119,7 +119,7 @@ PRIMARY KEY (CustomerID, [Type])
 );
 GO
 
-INSERT INTO #PhoneDirectory VALUES
+INSERT INTO PhoneDirectory VALUES
 (1001,'Cellular','555-897-5421'),
 (1001,'Work','555-897-6542'),
 (1001,'Home','555-698-9874'),

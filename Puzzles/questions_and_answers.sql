@@ -25,7 +25,7 @@ FROM    cte_Recursion a INNER JOIN
 SELECT  EmployeeID, ManagerID, JobTitle, Salary, Depth
 FROM    cte_Recursion;
 
---- Puzzle 4
+--- Puzzle 3
 
 --- Puzzle 4
 Select * from Orders;
@@ -41,3 +41,26 @@ on CTE1.customerID = O.customerID
 where O.DeliveryState = 'TX'
 
 --- Puzzle 5
+Select * from PhoneDirectory;
+
+WITH CTE1 as
+(select CustomerID,
+	   CASE 
+		WHEN Type = 'Cellular' THEN PhoneNumber
+		ELSE NULL
+	   END as 'Cellular',
+	   CASE 
+		WHEN Type = 'Home' THEN PhoneNumber
+		ELSE NULL
+	   END as 'Home',
+	   CASE 
+		WHEN Type = 'Work' THEN PhoneNumber
+		ELSE NULL
+	   END as 'Work'
+ from PhoneDirectory)
+select CustomerID, 
+	   Max(Cellular) as Cellular, 
+	   Max(Home) as Home,
+	   Max(Work) as Work 
+from CTE1
+group by CustomerID
