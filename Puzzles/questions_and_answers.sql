@@ -63,4 +63,17 @@ select CustomerID,
 	   Max(Home) as Home,
 	   Max(Work) as Work 
 from CTE1
-group by CustomerID
+group by CustomerID;
+
+--- Puzzle 6
+Select * from WorkflowSteps;
+
+WITH CTE1 as
+(select Workflow, 
+	   COUNT(StepNumber) as TotalSteps,
+	   COUNT(CompletionDate) as TotalStepsCompleted
+ from WorkflowSteps
+ group by Workflow)
+Select Workflow
+from CTE1
+where TotalSteps - TotalStepsCompleted != 0;
