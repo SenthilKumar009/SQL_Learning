@@ -1,11 +1,15 @@
 use PRACTICE;
 GO
 
+-- Puzzle 1
+
 Select isnull(dbo.cart1.Item, '') as 'Item Cart 1', isnull(dbo.cart2.Item, '') as 'Item Cart 2' 
 from dbo.cart1
 full outer join dbo.cart2 on dbo.cart1.item = dbo.cart2.item;
 
 select * from Employees;
+
+--- Puzzle 2
 
 --Recursion
 WITH cte_Recursion AS
@@ -20,3 +24,20 @@ FROM    cte_Recursion a INNER JOIN
 )
 SELECT  EmployeeID, ManagerID, JobTitle, Salary, Depth
 FROM    cte_Recursion;
+
+--- Puzzle 4
+
+--- Puzzle 4
+Select * from Orders;
+
+with CTE1 as
+(select CustomerID, OrderID, DeliveryState, Amount
+ from Orders
+ where DeliveryState in ('CA'))
+select O.CustomerID, O.OrderID, O.DeliveryState, O.Amount
+from Orders O
+join CTE1
+on CTE1.customerID = O.customerID
+where O.DeliveryState = 'TX'
+
+--- Puzzle 5
