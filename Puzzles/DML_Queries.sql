@@ -210,10 +210,10 @@ DDL for Puzzle #9
 Matching Sets
 */----------------------------------------------------
 
-DROP TABLE IF EXISTS #Employees;
+DROP TABLE IF EXISTS Employees;
 GO
 
-CREATE TABLE #Employees
+CREATE TABLE Employees
 (
 EmployeeID  INTEGER,
 License     VARCHAR(100),
@@ -221,7 +221,7 @@ PRIMARY KEY (EmployeeID, License)
 );
 GO
 
-INSERT INTO #Employees VALUES
+INSERT INTO Employees VALUES
 (1001,'Class A'),
 (1001,'Class B'),
 (1001,'Class C'),
@@ -237,16 +237,16 @@ DDL for Puzzle #10
 Mean, Median, Mode and Range
 */----------------------------------------------------
 
-DROP TABLE IF EXISTS #SampleData;
+DROP TABLE IF EXISTS SampleData;
 GO
 
-CREATE TABLE #SampleData
+CREATE TABLE SampleData
 (
 IntegerValue INTEGER
 );
 GO
 
-INSERT INTO #SampleData VALUES
+INSERT INTO SampleData VALUES
 (5),(6),(10),(10),(13),(14),(17),(20),(81),(90),(76);
 GO
 

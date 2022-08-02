@@ -92,3 +92,75 @@ select * from WorkflowCases;
 select Workflow, sum(Case1) + sum(Case2) + sum(Case3) as Passed
 from WorkflowCases
 group by Workflow
+
+-- Puzzle 9
+
+with cte_EmpCount as
+(select EmployeeID, count(*) LicenseCount
+ from Employees
+ group by EmployeeID
+),
+cte_LicenseCombined as
+(SELECT a.EmployeeID as EmployeeID1, 
+	   b.EmployeeID as EmployeeID2,  
+	   count(*) LicenseCountCombo
+ FROM Employees a INNER JOIN Employees b
+ ON a.License = b.License
+ where a.EmployeeID <> b.EmployeeID
+ group by a.EmployeeID, b.EmployeeID
+)
+Select EmployeeID1, EmployeeID2, LicenseCountCombo 
+from cte_LicenseCombined a
+inner join cte_EmpCount b
+ON a.EmployeeID1 <> b.EmployeeID
+AND b.LicenseCount = a.LicenseCountCombo
+
+-- Puzzle 10
+Select * from SampleData order by IntegerValue asc;
+
+select avg(IntegerValue) as Mean,
+	   ((SELECT TOP 1 IntegerValue
+	     FROM 
+			(SELECT TOP 50 PERCENT IntegerValue 
+			 from SampleData 
+			 ORDER BY IntegerValue
+			) as BottomHalf
+		 ORDER BY IntegerValue DESC)
+	    +
+		(SELECT TOP 1 IntegerValue
+		 FROM
+			(SELECT TOP 50 PERCENT IntegerValue 
+			 from SampleData 
+			 ORDER BY IntegerValue DESC
+			) as TopHalf
+		 ORDER BY IntegerValue ASC)
+	    ) * 1 / 2 as "Median",
+	   max(IntegerValue) - min(IntegerValue) as "Range",
+	   (SELECT TOP 1 IntegerValue as Mode
+		FROM
+			(SELECT IntegerValue, count(IntegerValue) CountValue
+			 FROM SampleData
+			 GROUP BY INTEGERVALUE
+			) as TopCount
+		ORDER BY CountValue DESC) as Mode
+from SampleData;
+
+-- Puzzle 11
+
+-- Puzzle 12
+
+-- Puzzle 13
+
+-- Puzzle 14
+
+-- Puzzle 15
+
+-- Puzzle 16
+
+-- Puzzle 17
+
+-- Puzzle 18
+
+-- Puzzle 19
+
+-- Puzzle 20
