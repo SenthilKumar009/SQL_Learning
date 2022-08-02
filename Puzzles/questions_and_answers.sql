@@ -147,7 +147,48 @@ from SampleData;
 
 -- Puzzle 11
 
+Select * from TestCases;
+
+DECLARE @vTotalElements INTEGER = (SELECT COUNT(*) FROM TestCases);
+
+--Recursion
+WITH cte_Permutations (Permutation, Ids, Depth)
+AS
+(
+SELECT  CAST(TestCase AS VARCHAR(MAX)),
+        CONCAT(CAST(RowNumber AS VARCHAR(MAX)),';'),
+        1 AS Depth
+FROM    TestCases
+UNION ALL
+SELECT  CONCAT(a.Permutation,',',b.TestCase),
+        CONCAT(a.Ids,b.RowNumber,';'),
+        a.Depth + 1
+FROM    cte_Permutations a,
+        TestCases b
+WHERE   a.Depth < @vTotalElements AND
+        a.Ids NOT LIKE CONCAT('%',b.RowNumber,';%')
+)
+SELECT  Permutation
+FROM    cte_Permutations
+WHERE   Depth = @vTotalElements;
+
 -- Puzzle 12
+
+Select * from ProcessLog;
+
+WITH cte_DayDiff AS
+(
+SELECT  WorkFlow,
+        (DATEDIFF(DD,LAG(ExecutionDate,1,NULL) OVER
+                 (PARTITION BY WorkFlow ORDER BY ExecutionDate),
+				  ExecutionDate)
+	    ) AS DateDifference
+FROM    ProcessLog
+)
+SELECT  WorkFlow, AVG(DateDifference)
+FROM    cte_DayDiff
+WHERE   DateDifference IS NOT NULL
+GROUP BY Workflow;
 
 -- Puzzle 13
 

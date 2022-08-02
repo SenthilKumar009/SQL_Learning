@@ -255,10 +255,10 @@ DDL for Puzzle #11
 Permutations
 */----------------------------------------------------
 
-DROP TABLE IF EXISTS #TestCases;
+DROP TABLE IF EXISTS TestCases;
 GO
 
-CREATE TABLE #TestCases
+CREATE TABLE TestCases
 (
 RowNumber INTEGER,
 TestCase VARCHAR(1),
@@ -266,7 +266,7 @@ PRIMARY KEY (RowNumber, TestCase)
 );
 GO
 
-INSERT INTO #TestCases VALUES
+INSERT INTO TestCases VALUES
 (1,'A'),(2,'B'),(3,'C');
 GO
 
@@ -275,10 +275,10 @@ DDL for Puzzle #12
 Average Days
 */----------------------------------------------------
 
-DROP TABLE IF EXISTS #ProcessLog;
+DROP TABLE IF EXISTS ProcessLog;
 GO
 
-CREATE TABLE #ProcessLog
+CREATE TABLE ProcessLog
 (
 WorkFlow        VARCHAR(100),
 ExecutionDate   DATE,
@@ -286,7 +286,7 @@ PRIMARY KEY (WorkFlow, ExecutionDate)
 );
 GO
 
-INSERT INTO #ProcessLog VALUES
+INSERT INTO ProcessLog VALUES
 ('Alpha','6/01/2018'),('Alpha','6/14/2018'),('Alpha','6/15/2018'),
 ('Bravo','6/1/2018'),('Bravo','6/2/2018'),('Bravo','6/19/2018'),
 ('Charlie','6/1/2018'),('Charlie','6/15/2018'),('Charlie','6/30/2018');
