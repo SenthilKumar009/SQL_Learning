@@ -201,6 +201,33 @@ order by InventoryDate;
 
 -- Puzzle 14
 
+Select * from ProcessLog;
+
+WITH CTE1 as
+(Select Workflow,
+	   CASE 
+			WHEN StepNumber = 1 THEN Status
+	   END as StepNumber1,
+	   CASE 
+			WHEN StepNumber = 2 THEN Status
+	   END as StepNumber2
+ FROM ProcessLog),
+CTE2 as
+(SELECT Workflow, MAX(StepNumber1) Step1, MAX(StepNumber2) Step2
+ FROM CTE1
+ GROUP BY Workflow)
+Select Workflow,
+	   CASE
+			WHEN (Step1 = 'Error' and Step2 = 'Complete') OR (Step2 = 'Error' and Step1 = 'Complete') THEN 'Indeterminate'
+			WHEN Step1 = 'Error' and Step2 = 'Error' THEN 'Error'
+			WHEN Step1 = 'Complete' and Step2 = 'Complete' THEN 'Complete'
+			WHEN (Step1 = 'Error' and Step2 = 'Running') OR (Step2 = 'Error' and Step1 = 'Running') THEN 'Indeterminate'
+			WHEN (Step1 = 'Running' and Step2 = 'Complete') OR (Step2 = 'Running' and Step1 = 'Complete') THEN 'Running'
+	   END as Status
+FROM CTE2
+
+
+
 -- Puzzle 15
 
 -- Puzzle 16
