@@ -191,6 +191,13 @@ WHERE   DateDifference IS NOT NULL
 GROUP BY Workflow;
 
 -- Puzzle 13
+Select * from Inventory;
+
+Select InventoryDate, QuantityAdjustment,
+	   SUM(QuantityAdjustment) OVER (ORDER BY InventoryDate) as Inventory
+FROM Inventory
+order by InventoryDate;
+
 
 -- Puzzle 14
 
