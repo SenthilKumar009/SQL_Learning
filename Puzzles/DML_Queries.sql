@@ -318,10 +318,10 @@ DDL for Puzzle #14
 Indeterminate Process Log
 */----------------------------------------------------
 
-DROP TABLE IF EXISTS #ProcessLog;
+DROP TABLE IF EXISTS ProcessLog;
 GO
 
-CREATE TABLE #ProcessLog
+CREATE TABLE ProcessLog
 (
 Workflow    VARCHAR(100),
 StepNumber  INTEGER,
@@ -330,7 +330,7 @@ PRIMARY KEY (Workflow, StepNumber)
 );
 GO
 
-INSERT INTO #ProcessLog VALUES
+INSERT INTO ProcessLog VALUES
 ('Alpha',1,'Error'),('Alpha',2,'Complete'),('Bravo',1,'Complete'),('Bravo',2,'Complete'),
 ('Charlie',1,'Complete'),('Charlie',2,'Error'),('Delta',1,'Complete'),('Delta',2,'Running'),
 ('Echo',1,'Running'),('Echo',2,'Error'),('Foxtrot',1,'Error'),('Foxtrot',2,'Error');
