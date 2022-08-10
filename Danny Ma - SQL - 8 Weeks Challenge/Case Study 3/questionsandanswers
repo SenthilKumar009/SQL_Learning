@@ -32,18 +32,23 @@ order by extract(month from start_date) asc;
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 select * from foodiefi.subscriptions;
 -- 3. What plan start_date values occur after the year 2020 for our dataset? Show the breakdown by count of events for each plan_name
-select * from foodiefi.subscriptions
-where extract(year from start_date) = 2021;
-
 select plan_name, count(p.plan_id) Total_Events_after_2000
 from foodiefi.subscriptions s
 join foodiefi.plans p
 on p.plan_id = s.plan_id
 where extract(year from s.start_date) = 2021
 group by plan_name;
-
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 4. What is the customer count and percentage of customers who have churned rounded to 1 decimal place?
+select * from foodiefi.plans;
+select * from foodiefi.subscriptions
+select count(distinct s.customer_id) total_customers,
+	   sum(case when p.plan_name = 'churn' then 1 else 0 end) churn_customers,
+	   round(100.0*((sum(case when p.plan_name = 'Churn' then 1 else 0 end)*1.0)/count(distinct s.customer_id)),2) percentage_of_churned_customers,
+	   round(37.0 / 100.0) 
+from foodiefi.subscriptions s
+join foodiefi.plans p
+on p.plan_id = s.plan_id;
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 5. How many customers have churned straight after their initial free trial - what percentage is this rounded to the nearest whole number?
 --------------------------------------------------------------------------------------------------------------------------------------------------------
