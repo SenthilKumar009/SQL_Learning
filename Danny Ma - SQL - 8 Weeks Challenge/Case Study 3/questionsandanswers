@@ -3,10 +3,11 @@ select * from foodiefi.plans;
 select * from foodiefi.subscriptions;
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 														--B. Data Analysis Questions
+														
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 1. How many customers has Foodie-Fi ever had?
 
-select count( distinct customer_id)
+select count(distinct customer_id)
 from foodiefi.subscriptions;
 
 select
@@ -31,30 +32,117 @@ group by extract(year from start_date), extract(month from start_date)
 order by extract(month from start_date) asc;
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 select * from foodiefi.subscriptions;
+
 -- 3. What plan start_date values occur after the year 2020 for our dataset? Show the breakdown by count of events for each plan_name
 select plan_name, count(p.plan_id) Total_Events_after_2000
 from foodiefi.subscriptions s
 join foodiefi.plans p
 on p.plan_id = s.plan_id
-where extract(year from s.start_date) = 2021
+where extract(year from s.start_date) > 2020
 group by plan_name;
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 4. What is the customer count and percentage of customers who have churned rounded to 1 decimal place?
 select * from foodiefi.plans;
-select * from foodiefi.subscriptions
+select * from foodiefi.subscriptions;
 select count(distinct s.customer_id) total_customers,
 	   sum(case when p.plan_name = 'churn' then 1 else 0 end) churn_customers,
-	   round(100.0*((sum(case when p.plan_name = 'Churn' then 1 else 0 end)*1.0)/count(distinct s.customer_id)),2) percentage_of_churned_customers,
-	   round(37.0 / 100.0) 
+	   round(((sum(case when p.plan_name = 'churn' then 1 else 0 end) * 1.0) /(count(distinct s.customer_id)*1.0)),2) percentage_of_churned_customers
 from foodiefi.subscriptions s
 join foodiefi.plans p
 on p.plan_id = s.plan_id;
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 5. How many customers have churned straight after their initial free trial - what percentage is this rounded to the nearest whole number?
+select * from foodiefi.plans;
+select * from foodiefi.subscriptions;
+
+with subs_details as
+(select s.customer_id, count(s.plan_id) total_subscriptions, min(s.start_date) start_subs_date, max(start_date) last_subs_date
+ from foodiefi.subscriptions s
+ --where s.plan_id in (4) and count(s.plan)
+ group by s.customer_id
+ order by s.customer_id
+),
+only_two_subs as
+(
+select distinct s.customer_id, f.last_subs_date last_subs_date
+ from foodiefi.subscriptions s
+ join subs_details f
+ on s.customer_id = f.customer_id
+ where total_subscriptions = 2 
+),
+churn_customers as 
+(
+ select count(s.customer_id) churn_Customer
+ from foodiefi.subscriptions s
+ join only_two_subs ts
+ on s.customer_id = ts.customer_id
+ where s.plan_id = 4 and s.start_date = ts.last_subs_date
+),
+total_customer as
+(
+ select count(distinct customer_id) as total_customer
+ from foodiefi.subscriptions
+)
+select 
+	round(((churn_customer * 1.0) / (total_customer * 1.0) * 100), 2)
+from churn_customers, total_customer
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 6. What is the number and percentage of customer plans after their initial free trial?
+
+select * from foodiefi.plans;
+select * from foodiefi.subscriptions;
+
+with subs_details as
+(select s.customer_id, count(s.plan_id) total_subscriptions, min(s.start_date) start_subs_date, max(start_date) last_subs_date
+ from foodiefi.subscriptions s
+ --where s.plan_id in (4) and count(s.plan)
+ group by s.customer_id
+ order by s.customer_id
+),
+only_two_subs as
+(
+select distinct s.customer_id, f.last_subs_date last_subs_date
+ from foodiefi.subscriptions s
+ join subs_details f
+ on s.customer_id = f.customer_id
+ where total_subscriptions = 2 
+),
+churn_customers as 
+(
+ select count(s.customer_id) churn_Customer
+ from foodiefi.subscriptions s
+ join only_two_subs ts
+ on s.customer_id = ts.customer_id
+ where s.plan_id = 4 and s.start_date = ts.last_subs_date
+),
+total_customer as
+(
+ select count(distinct customer_id) as total_customer
+ from foodiefi.subscriptions
+)
+select total_customer, churn_customer, 
+	round(((churn_customer * 1.0) / (total_customer * 1.0) * 100), 2)
+from churn_customers, total_customer;
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 7. What is the customer count and percentage breakdown of all 5 plan_name values at 2020-12-31?
+select * from foodiefi.subscriptions;
+select * from foodiefi.plans;
+
+select s.customer_id, max(s.start_date) last_subs_date
+from foodiefi.subscriptions s
+where s.start_date >= '2020-12-31'
+group by s.customer_id
+order by s.customer_id
+
+select p.plan_id, count(s.customer_id)
+from foodiefi.subscriptions s
+join foodiefi.plans p
+on p.plan_id = s.plan_id
+group by p.plan_id
+order by p.plan_id;
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 8. How many customers have upgraded to an annual plan in 2020?
 --------------------------------------------------------------------------------------------------------------------------------------------------------
