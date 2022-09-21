@@ -145,8 +145,60 @@ order by p.plan_id;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 8. How many customers have upgraded to an annual plan in 2020?
---------------------------------------------------------------------------------------------------------------------------------------------------------
+select * from foodiefi.subscriptions;
+select * from foodiefi.plans;
+
+-- Steps:
+-- 1. get the subscription start date from the table
+-- 2. get the annual subscription starrt date for the customers who opted.
+-- 3. Get the count from 200
+
+with trail_start_date as
+(
+	select count(s.customer_id) total_trail_subs
+	from foodiefi.subscriptions s
+	where s.plan_id = 0
+),
+annual_start_date as
+(
+	select count(s.customer_id) total_annual_subs
+	from foodiefi.subscriptions s
+	where plan_id = 3 and extract(year from s.start_date) = 2020
+)
+select total_trail_subs, total_annual_subs,
+	   round(((total_annual_subs * 1.0) / (total_trail_subs * 1.0)) * 100, 2)
+from trail_start_date, annual_start_date
+
+select count(s.customer_id) total_customers_upgraded_annual
+from foodiefi.subscriptions s
+where plan_id = 3 and extract(year from s.start_date) = 2020
+
+--------------------------
+------------------------------------------------------------------------------------------------------------------------------
 -- 9. How many days on average does it take for a customer to an annual plan from the day they join Foodie-Fi?
+
+with trail_starts as
+(
+	select s.plan_id, s.customer_id, s.start_date trail_start_date
+	from foodiefi.subscriptions s
+	where s.plan_id = 0
+),
+annual_subs as
+(
+	select s.customer_id, s.start_date annaul_start_date
+	from foodiefi.subscriptions s
+	where s.plan_id = 3
+),
+get_date_diff as
+(
+	select ts.customer_id, ts.trail_start_date, a.annaul_start_date, a.annaul_start_date - ts.trail_start_date days_to_annual_sub
+	from annual_subs a
+	join trail_starts ts
+	on a.customer_id = ts.customer_id
+)
+select count(customer_id), sum(days_to_annual_sub), round(avg(days_to_annual_sub),2) average_time_to_pro_convertion
+from get_date_diff
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 10. Can you further breakdown this average value into 30 day periods (i.e. 0-30 days, 31-60 days etc)
 --------------------------------------------------------------------------------------------------------------------------------------------------------
