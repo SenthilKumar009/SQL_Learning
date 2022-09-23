@@ -204,6 +204,45 @@ from get_date_diff
 select * from foodiefi.subscriptions;
 select * from foodiefi.plans;
 
+with initialdate as 
+(
+  select 
+    customer_id,min(start_date) first_plan_date 
+  from 
+    foodiefi.subscriptions s join foodiefi.plans p on s.plan_id = p.plan_id
+  group by 1
+),
+annualplan as 
+(
+  select 
+    s.customer_id,i.first_plan_date,s.start_date annual_plan_date , 
+    s.start_date - first_plan_date  as days_diff
+  from foodiefi.subscriptions s join foodiefi.plans p on s.plan_id = p.plan_id 
+  join initialdate i on s.customer_id = i.customer_id 
+  where p.plan_name = 'pro annual'
+),
+thirtydayaverage as
+(
+  select 
+    (days_diff / 30) thirtydayrange , count(distinct customer_id) total_customers, 
+     sum(days_diff) total_days,
+      round((1.0*sum(days_diff)) / count(distinct customer_id),0) Average_days_per_customer
+  from 
+    annualplan
+  group by 1
+),
+res as 
+(
+  select 
+  case 
+    when thirtydayrange =0 then 'Less than 30 days'
+    else concat((thirtydayrange-1)*30, ' - ', thirtydayrange*30)
+  end Days_Range,
+  total_customers tot_cust,total_days tot_days,Average_days_per_customer avg_days
+from
+    thirtydayaverage
+)
+select * from res;
 
 
 
