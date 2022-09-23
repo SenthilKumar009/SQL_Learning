@@ -201,6 +201,36 @@ from get_date_diff
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 10. Can you further breakdown this average value into 30 day periods (i.e. 0-30 days, 31-60 days etc)
+select * from foodiefi.subscriptions;
+select * from foodiefi.plans;
+
+
+
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 11. How many customers downgraded from a pro monthly to a basic monthly plan in 2020?
+select * from foodiefi.subscriptions;
+select * from foodiefi.plans;
+
+with pro_monthly_plan as
+(
+	select s.customer_id, s.plan_id, s.start_Date pro_month_start_date
+	from foodiefi.subscriptions s
+	where plan_id in (2)
+	order by customer_id
+),
+max_subs_date as
+(
+	select s.customer_id, max(s.start_Date) max_subs_date
+	from foodiefi.subscriptions s
+	join pro_monthly_plan p
+	on s.customer_id = p.customer_id
+	group by s.customer_id
+	order by s.customer_id
+)
+select s.customer_id, s.plan_id, s.start_date
+from foodiefi.subscriptions s
+join max_subs_date m
+on s.customer_id = m.customer_id
+where s.start_date > m.max_subs_date and s.plan_id = 1;
 --------------------------------------------------------------------------------------------------------------------------------------------------------
