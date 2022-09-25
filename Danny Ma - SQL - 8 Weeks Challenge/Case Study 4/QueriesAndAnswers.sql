@@ -1,6 +1,11 @@
 --------- Questions and Answers ---------
 --- A. Customer Nodes Exploration ---
+select * from neobank.customer_nodes;
+select * from neobank.customer_transactions;
+select * from neobank.regions;
 --- 1. How many unique nodes are there on the Data Bank system?
+
+
 --- 2. What is the number of nodes per region?
 --- 3.  How many customers are allocated to each region?
 --- 1. How many days on average are customers reallocated to a different node?
