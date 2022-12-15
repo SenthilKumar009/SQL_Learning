@@ -5,6 +5,7 @@ Part of this porject I am using a dataset from Maven Analytics and Postgresql To
 
 ### Create Database:
 
+```
 -- DROP DATABASE IF EXISTS spacemission;
 
 CREATE DATABASE spacemission
@@ -16,16 +17,18 @@ CREATE DATABASE spacemission
     TABLESPACE = pg_default
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
-
+```
 
 -- Create Schemas
-
+```
 create table space_mission_data_directory(
 	Field varchar(100),
 	Description varchar(200)
 );
 
+
 drop table space_missions;
+
 create table space_missions(
 	Company	varchar(50),
 	place varchar(100),
@@ -37,10 +40,10 @@ create table space_missions(
 	Price numeric(10,2),
 	MissionStatus varchar(20)
 );
-
+```
 
 -- load data from CSV files
-
+```
 COPY space_mission_data_directory(Field,Description)
 FROM 'D:\Tech\Datasets for Data Engineering\Maven Analytics\SpaceMissions\space_missions_data_dictionary.csv'
 DELIMITER ','
@@ -50,13 +53,13 @@ COPY space_missions(Company,place,mission_Date,mission_Time,Rocket, Mission, Roc
 FROM 'D:\Tech\Datasets for Data Engineering\Maven Analytics\SpaceMissions\space_missions.csv'
 DELIMITER ','
 CSV HEADER;
-
+```
 ---- Check Data
-
+```
 Select * from space_mission_data_directory;
 
 select * from space_missions;
-
+```
 ----------------------------------------------------------
 
 ## Data Analysis
