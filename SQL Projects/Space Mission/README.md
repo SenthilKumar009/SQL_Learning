@@ -187,3 +187,22 @@ from space_missions
 where price is not null
 order by price desc;
 ```
+
+---12. Which Place has most lauching
+```
+select place, count(place) total_launches
+from space_missions
+group by place
+order by total_launches desc;
+```
+---13. Total Lauches by places
+```
+with mission_place as(
+	select split_part(place, ',', 3) place, mission
+	from space_missions
+)
+select place, count(place) as total_mission
+from mission_place
+group by place
+order by total_mission desc;
+```
