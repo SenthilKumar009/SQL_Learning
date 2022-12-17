@@ -180,3 +180,10 @@ select rocket,
 from space_missions
 group by rocket;
 ```
+---11. Most money spend for a launch
+```
+select mission, rocket, price
+from space_missions
+where price is not null
+order by price desc;
+```
