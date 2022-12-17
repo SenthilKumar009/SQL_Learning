@@ -1,0 +1,49 @@
+Table,Field,Description
+world_cups,Year,Year in which the World Cup took place
+world_cups,Host Country,Country that hosted the tournament
+world_cups,Winner,Country that won the tournament
+world_cups,Runners-Up,Country that received second place
+world_cups,Third,Country that received third place
+world_cups,Fourth,Country that received fourth place
+world_cups,Goals Scored,Total number of goals scored in the tournament
+world_cups,Qualified Teams,Total number of teams that participated in the tournament
+world_cups,Matches Played,Total number of matches played in the tournament
+world_cup_groups,Group,"Group for the first stage of the tournament (countries play each team in their group once, the top 2 advance - wins are 3 points, draws are 1 point, losses are 0 points)"
+world_cup_groups,Team,Country name
+world_cup_groups,FIFA Ranking,Current FIFA Ranking
+world_cup_squads,ID,Unique identifier for the player
+world_cup_squads,Team,Country the player plays for
+world_cup_squads,Position,"Position the player plays on the team (Goalkeeper, Defender, Midfielder, or Forward)"
+world_cup_squads,Player,Player name
+world_cup_squads,Age,Player age
+world_cup_squads,Caps,Matches played with the national team
+world_cup_squads,Goals,Goals scored for the national team
+world_cup_squads,WC Goals,World Cup goals scored for the national team
+world_cup_squads,League,Country for the domestic league the player plays in
+world_cup_squads,Club,Domestic club the player plays for
+2022_world_cup_matches,ID,Unique identifier for the match
+2022_world_cup_matches,Year,Year in which the World Cup will take place
+2022_world_cup_matches,Date,Data of the match
+2022_world_cup_matches,Stage,Stage in the tournament
+2022_world_cup_matches,Home Team,"Country playing as the home team (in the Round of 16, this is shown as the winner of each group; in the rest of the knockout stages, this is shown as the winner or loser of each match ID)"
+2022_world_cup_matches,Away Team,"Country playing as the away team  (in the Round of 16, this is shown as the runner-up of each group; in the rest of the knockout stages, this is shown as the winner or loser of each match ID)"
+2022_world_cup_matches,Host Team,"TRUE whenever the host country is playing as the home team in the match, FALSE otherwise"
+world_cup_matches,ID,Unique identifier for the match
+world_cup_matches,Year,Year in which the World Cup took place
+world_cup_matches,Date,Data of the match
+world_cup_matches,Stage,Stage in the tournament (previous World Cups had different formats)
+world_cup_matches,Home Team,Country playing as the home team
+world_cup_matches,Home Goals,Goals scored by the home team
+world_cup_matches,Away Goals,Goals scored by the away team
+world_cup_matches,Away Team,Country playing as the away team
+world_cup_matches,Win Conditions,"Was the match decided in extra time, by golden goal (no longer applicable), or penalties?"
+world_cup_matches,Host Team,"TRUE whenever the host country is playing as the home team in the match, FALSE otherwise"
+international_matches,ID,Unique identifier for the match
+international_matches,Tournament,Tournament the match was a part of (can also be a Friendly)
+international_matches,Date,Data of the match
+international_matches,Home Team,Country playing as the home team
+international_matches,Home Goals,Goals scored by the home team
+international_matches,Away Goals,Goals scored by the away team
+international_matches,Away Team,Country playing as the away team
+international_matches,Win Conditions,Was the match decided by penalties?
+international_matches,Home Stadium,"TRUE whenever the game took place in the home team's country, FALSE otherwise"
