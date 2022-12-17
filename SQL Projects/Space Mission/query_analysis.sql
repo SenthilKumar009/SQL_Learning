@@ -94,12 +94,42 @@ with rocket_status as(
 	select distinct rocket, rocketstatus
 	from space_missions
 	group by rocket, rocketstatus
-	order by rocket;
+	order by rocket
 )
-select distinct rocket, rocketstatus
+select 
+	case when rocketstatus = 'Active' then count(rocketstatus) end as ActiveStatus,
+	case when rocketstatus = 'Retired' then count(rocketstatus) end as RetiredStatus
+from rocket_status
+group by rocketstatus;
+
+
+---10. Rocket Launch Status
+
+select rocket, 
+	   count(case when missionstatus = 'Success' then 1 end) as MissionSuccess,
+	   count(case when missionstatus = 'Failure' then 1 end) as MissionFailed
 from space_missions
-group by rocket, rocketstatus
-order by rocket;
+group by rocket;
 
+---11. Most money spend for a launch
 
----10. 
+select mission, rocket, price
+from space_missions
+where price is not null
+order by price desc;
+
+---12. Which Place has most lauching
+select place, count(place) total_launches
+from space_missions
+group by place
+order by total_launches desc;
+
+---13. Total Lauches by places
+with mission_place as(
+	select split_part(place, ',', 3) place, mission
+	from space_missions
+)
+select place, count(place) as total_mission
+from mission_place
+group by place
+order by total_mission desc;
