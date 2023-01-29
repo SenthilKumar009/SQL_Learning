@@ -31,6 +31,19 @@ CREATE TABLE IF NOT EXISTS OLYMPICS_HISTORY_NOC_REGIONS
 select * from OLYMPICS_HISTORY;
 select * from OLYMPICS_HISTORY_NOC_REGIONS;
 
+COPY OLYMPICS_HISTORY (id, name, sex, age, height, weight, team, noc, games, year, season, city, sport, event, medal)
+FROM 'D:\Tech\Git Repositories\SQL_Learning\SQL Projects\Olympic - Data Analysis\Olympic-Data\athlete_events.csv'
+DELIMITER ','
+CSV HEADER;
+
+COPY OLYMPICS_HISTORY_NOC_REGIONS (noc, region, notes)
+from 'D:\Tech\Git Repositories\SQL_Learning\SQL Projects\Olympic - Data Analysis\Olympic-Data\noc_regions.csv'
+DELIMITER ','
+CSV HEADER;
+
+select * from OLYMPICS_HISTORY;
+select * from OLYMPICS_HISTORY_NOC_REGIONS;
+
 -------------------------------------------------------------
 
 /* Q1: How many olympics games have been held? 
@@ -117,25 +130,25 @@ select * from olympics_history;
 2. Find for each sport, how many games where they playedd in
 3. Compare 1 and 2
 
-with t1 as
+with summer_olympics as
 (select count(distinct games) as total_summer_games
  from olympics_history
  where season = 'Summer'
 ),
-t2 as
+summer_olympic_games as
 (select distinct sport, games
  from olympics_history
  where season = 'Summer'
  order by games
 ),
-t3 as
+summer_games as
 (select sport, count(games) no_of_games
- from t2
+ from summer_olympic_games
  group by sport)
 select *
-from t3
-join t1
-on t3.no_of_games = t1.total_summer_games;
+from summer_games
+join summer_olympics
+on summer_games.no_of_games = summer_olympics.total_summer_games;
 
 /* Q7. Which Sports were just played only once in the olympics. 
 	   Problem Statement: Using SQL query, Identify the sport which were just played once in all of olympics. */
@@ -213,7 +226,15 @@ where rnk = 1;
 /* Q10. Find the Ratio of male and female athletes participated in all olympic games. 
 		Problem Statement: Write a SQL query to get the ratio of male and female participants */
 
-
+with sex_count as
+(select sex,
+	   count(case when sex = 'M' then 1 else 0 end) as total
+	   --count(case when sex = 'F' then 1 else 0 end) as female
+ from olympics_history
+ group by sex
+)
+select concat((min(total)/ min(total)),':', (round((max(total)*1.0)/ (min(total)*1.0), 2)))
+from sex_count;
 
 /* Q11. Fetch the top 5 athletes who have won the most gold medals.  */
 select * from olympics_history
@@ -257,7 +278,7 @@ t2 as
 )
 select * from t2 where ranking < 6;
 
-/* Q13. Fetch the top 5 most successful countries in olympics. Success is defined by no of medals won.
+/* Q13. Fetch the top 5 most successful countries in olympics. Success is defined by numbers of medals won.
 		Problem Statement: Write a SQL query to fetch the top 5 most successful countries in olympics. (Success is defined by no of medals won) */
 
 1. Count the medals based on the NOC
@@ -521,4 +542,4 @@ from olympics_history
 where medal <> 'NA' and
 	  NOC = 'IND'
 group by team, sport, medal, games
-order by total_medals desc
+order by total_medals desc;
