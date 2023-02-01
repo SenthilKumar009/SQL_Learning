@@ -416,6 +416,103 @@ GROUP BY user_id
 HAVING DATE_PART('day',MAX(action_date)) - DATE_PART('day',MIN(action_date)) :: NUMERIC = 1
 
 -------------------------------------------------------------------------------------------------------------------------------
+'''
+Date  : 01-Feb-2023
+Author: Senthil Kumar ("The Alien") Kanagaraj
+
+Platform: HackerRank
+Weather Observation Station
+Difficulty: Easy
+
+Query the two cities in STATION with the shortest and longest CITY names, as well as their respective lengths (i.e.: number of characters in the name). 
+If there is more than one smallest or largest city, choose the one that comes first when ordered alphabetically.
+The STATION table is described as follows:
+'''
+
+-- Solution:
+(select city, length(city) city_length
+from station
+order by city_length asc, city asc
+limit 1)
+union
+(select city, length(city) city_length
+from station
+order by city_length desc, city asc
+limit 1)
+
+-------------------------------------------------------------------------------------------------------------------------------
+'''
+Date  : 01-Feb-2023
+Author: Senthil Kumar ("The Alien") Kanagaraj
+
+Platform: LeedCode
+626. Exchange Seats
+Level : Medium
+
+Table: Seat
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| student     | varchar |
++-------------+---------+
+id is the primary key column for this table.
+Each row of this table indicates the name and the ID of a student.
+id is a continuous increment.
+ 
+Write an SQL query to swap the seat id of every two consecutive students. If the number of students is odd, the id of the last student is not swapped.
+
+Return the result table ordered by id in ascending order.
+
+The query result format is in the following example.
+
+Example 1:
+
+Input: 
+Seat table:
++----+---------+
+| id | student |
++----+---------+
+| 1  | Abbot   |
+| 2  | Doris   |
+| 3  | Emerson |
+| 4  | Green   |
+| 5  | Jeames  |
++----+---------+
+Output: 
++----+---------+
+| id | student |
++----+---------+
+| 1  | Doris   |
+| 2  | Abbot   |
+| 3  | Green   |
+| 4  | Emerson |
+| 5  | Jeames  |
++----+---------+
+Explanation: 
+Note that if the number of students is odd, there is no need to change the last ones seat.
+'''
+
+-- Solution:
+select 
+       case 
+            when id % 2 = 0 then
+                 id - 1
+            when id % 2 = 1 and id + 1 not in (select id from seat) then
+                 id
+            else 
+                 id + 1
+       end as id,
+       student
+from seat
+order by id;
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------------------------------------------------------
 
