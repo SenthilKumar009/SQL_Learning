@@ -144,22 +144,78 @@ from world_cup_winners w
 join world_cup_runners r
 on w. country = r.country
 
+-- 9. Which Finals or Semi-final games were decided by penalties?
+Select year, stage, hometeamname, awayteamname, concat(hometeamgoals, ' - ', awayteamgoals) goals, winconditions
+from WorldCupMatches
+where winconditions like '%penalties%'
+and stage in ('Final', 'Semi-Finals');
 
-Country:
+-- 10. What is the average number of goals scored per World Cup?
+select count(year) total_world_cups, sum(goalsscored) total_goals_scored, sum(goalsscored)/count(year) avg_goals_per_worldcup
+from worldcups;
 
-1. Total Number of Wolrd cups/ Participation Countries/ 
-2. Which team won the most World Cups, and how many wins was that?
-3. Which Finals or Semi-final games were decided by penalties?
-4. Which years had the highest and lowest attendance to the World Cup games?
-5. What is the average number of goals scored per World Cup?
-6. How many countries qualified for the World Cup in 1930 compared to 2014?
-7. Does history show more home-team wins or away-team wins?
-8. Most Number of World Cup Winning Title
-9. Number of Goal Per Countary
-10. Attendance, Number of Teams, Goals, and Matches per Cup
-11. Goals Per Team Per World Cup
-12. Matches With Heihest Number Of Attendance
-13. Stadium with Highest Average Attendance
-14. Which countries had won the cup ?
-15. Number of goal per country
-16. Match outcome by home and away temas
+-- 11. How many countries qualified for the World Cup in 1930 compared to 2014?
+select year, qualifiedteams from worldcups
+where year in(1930, 2014)
+
+-- 12. Does history show more home-team wins or away-team wins?
+select year, stage, hometeamname, awayteamname, hometeamgoals, awayteamgoals, winconditions
+from worldcupmatches
+where year is not null;
+
+
+
+
+-- 13. Number of Goal Per Countary
+with home_team_goals as
+(
+	select hometeamname country, sum(hometeamgoals) goals
+	from worldcupmatches
+	where year is not null
+	group by hometeamname
+),
+away_team_goals as
+(
+	select awayteamname country, sum(awayteamgoals) goals
+	from worldcupmatches
+	where year is not null
+	group by awayteamname
+)
+select a.country, a.goals + h.goals goals_Scored
+from home_team_goals h
+join away_team_goals a
+on a.country = h.country
+order by goals_Scored desc;
+
+-- 14. Goals Per Team Per World Cup
+
+with goals_scored as(
+	select year, hometeamname country, sum(hometeamgoals) goals
+	from worldcupmatches
+	where year is not null
+	group by year, hometeamname
+	union
+	select year, awayteamname country, sum(awayteamgoals) goals
+	from worldcupmatches
+	where year is not null
+	group by year, awayteamname
+)
+select year, country, sum(goals) goals_Scored
+from goals_scored
+group by year, country
+order by year, country
+
+-- 15. Matches With Heihest Number Of Attendance
+select * from worldcupmatches
+where year is not null and attendance is not null
+order by attendance desc;
+
+-- 16. Stadium with Highest Average Attendance
+select stadium, count(datetime) total_matches, sum(attendance) total_attendance, round(avg(attendance),2) avg_attendance
+from worldcupmatches
+where stadium is not null
+group by stadium
+order by stadium asc;
+
+-- 19. Match outcome by home and away temas
+select * from worldcupmatches
