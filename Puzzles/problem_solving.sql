@@ -702,3 +702,158 @@ left join total_cancel_trip tct
 on tt.request_at = tct.request_at
 order by tt.request_at
 -------------------------------------------------------------------------------------------------------------------------------
+'''
+Date  : 03-Feb-2023
+Author: Senthil Kumar ("The Alien") Kanagaraj
+
+Platform: LeedCode
+511. Game Play Analysis I
+Difficulty: Easy
+
+Table: Activity
+
++--------------+---------+
+| Column Name  | Type    |
++--------------+---------+
+| player_id    | int     |
+| device_id    | int     |
+| event_date   | date    |
+| games_played | int     |
++--------------+---------+
+(player_id, event_date) is the primary key of this table.
+This table shows the activity of players of some games.
+Each row is a record of a player who logged in and played a number of games (possibly 0) before logging out on someday using some device.
+ 
+
+Write an SQL query to report the first login date for each player.
+
+Return the result table in any order.
+
+The query result format is in the following example.
+
+ 
+
+Example 1:
+
+Input: 
+Activity table:
++-----------+-----------+------------+--------------+
+| player_id | device_id | event_date | games_played |
++-----------+-----------+------------+--------------+
+| 1         | 2         | 2016-03-01 | 5            |
+| 1         | 2         | 2016-05-02 | 6            |
+| 2         | 3         | 2017-06-25 | 1            |
+| 3         | 1         | 2016-03-02 | 0            |
+| 3         | 4         | 2018-07-03 | 5            |
++-----------+-----------+------------+--------------+
+Output: 
++-----------+-------------+
+| player_id | first_login |
++-----------+-------------+
+| 1         | 2016-03-01  |
+| 2         | 2017-06-25  |
+| 3         | 2016-03-02  |
++-----------+-------------+
+'''
+-- Solution:
+
+select player_id, min(event_date) first_login
+from Activity
+group by player_id;
+
+-------------------------------------------------------------------------------------------------------------------------------
+'''
+Date  : 03-Feb-2023
+Author: Senthil Kumar ("The Alien") Kanagaraj
+
+Platform: LeedCode
+601. Human Traffic of Stadium
+Difficulty: Hard
+
+Table: Stadium
+
++---------------+---------+
+| Column Name   | Type    |
++---------------+---------+
+| id            | int     |
+| visit_date    | date    |
+| people        | int     |
++---------------+---------+
+visit_date is the primary key for this table.
+Each row of this table contains the visit date and visit id to the stadium with the number of people during the visit.
+No two rows will have the same visit_date, and as the id increases, the dates increase as well.
+ 
+
+Write an SQL query to display the records with three or more rows with consecutive ids, and the number of people is greater than or equal to 100 for each.
+
+Return the result table ordered by visit_date in ascending order.
+
+The query result format is in the following example.
+
+ 
+
+Example 1:
+
+Input: 
+Stadium table:
++------+------------+-----------+
+| id   | visit_date | people    |
++------+------------+-----------+
+| 1    | 2017-01-01 | 10        |
+| 2    | 2017-01-02 | 109       |
+| 3    | 2017-01-03 | 150       |
+| 4    | 2017-01-04 | 99        |
+| 5    | 2017-01-05 | 145       |
+| 6    | 2017-01-06 | 1455      |
+| 7    | 2017-01-07 | 199       |
+| 8    | 2017-01-09 | 188       |
++------+------------+-----------+
+Output: 
++------+------------+-----------+
+| id   | visit_date | people    |
++------+------------+-----------+
+| 5    | 2017-01-05 | 145       |
+| 6    | 2017-01-06 | 1455      |
+| 7    | 2017-01-07 | 199       |
+| 8    | 2017-01-09 | 188       |
++------+------------+-----------+
+Explanation: 
+The four rows with ids 5, 6, 7, and 8 have consecutive ids and each of them has >= 100 people attended. Note that row 8 was included even though the visit_date was not the next day after row 7.
+The rows with ids 2 and 3 are not included because we need at least three consecutive ids.
+'''
+--- Solution
+
+-- Create Table:
+
+create table Stadium(
+	id int,
+	visit_date date,
+	people int  
+);
+
+insert into stadium values
+(1, '2017-01-01', 10),
+(2, '2017-01-02', 109),
+(3, '2017-01-03', 150),
+(4, '2017-01-04', 99),
+(5, '2017-01-05', 145),
+(6, '2017-01-06', 1455),
+(7, '2017-01-07', 199),
+(8, '2017-01-09', 188);
+
+select * from stadium;
+
+WITH check_consecutive AS
+(SELECT ROW_NUMBER() OVER(ORDER BY id) AS rownumber, id, visit_date, people
+FROM Stadium
+WHERE people >= 100)
+
+SELECT id, visit_date, people
+FROM check_consecutive
+WHERE id-rownumber IN
+(SELECT (id - rownumber)
+FROM check_consecutive
+GROUP BY (id - rownumber)
+HAVING COUNT(*) >= 3);
+
+-------------------------------------------------------------------------------------------------------------------------------
