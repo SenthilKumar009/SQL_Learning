@@ -911,11 +911,26 @@ AND IP.order_occurrences IN
 Date  : 04-Feb-2023
 Author: Senthil Kumar ("The Alien") Kanagaraj
 
-Platform: LeedCode
-Compressed Mode [Alibaba SQL Interview Question]
+Platform: Hackerrank
 Difficulty: Medium
 
+A median is defined as a number separating the higher half of a data set from the lower half. 
+Query the median of the Northern Latitudes (LAT_N) from STATION and round your answer to  decimal places.
 
+Input Format
 
+The STATION table is described as follows:
+
+Field		Type
+ID			number
+CITY		varchar
+STATE		varchar
+LAT_N		number
+LONG_W		number
+'''
+-- Solution:
+
+SELECT ROUND(MEDIAN(Lat_N), 4)
+FROM Station;
 
 -------------------------------------------------------------------------------------------------------------------------------
