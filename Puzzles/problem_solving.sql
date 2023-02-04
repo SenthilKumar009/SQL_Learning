@@ -858,7 +858,7 @@ HAVING COUNT(*) >= 3);
 
 -------------------------------------------------------------------------------------------------------------------------------
 '''
-Date  : 03-Feb-2023
+Date  : 04-Feb-2023
 Author: Senthil Kumar ("The Alien") Kanagaraj
 
 Platform: LeedCode
@@ -905,5 +905,17 @@ WHERE TOTAL_ORDER_OCCUR IN
 (SELECT MAX(TOTAL_ORDER_OCCUR) FROM ORDER_OCCUR)
 AND IP.order_occurrences IN
 (SELECT MAX(order_occurrences) FROM ORDER_OCCUR)
+
+-------------------------------------------------------------------------------------------------------------------------------
+'''
+Date  : 04-Feb-2023
+Author: Senthil Kumar ("The Alien") Kanagaraj
+
+Platform: LeedCode
+Compressed Mode [Alibaba SQL Interview Question]
+Difficulty: Medium
+
+
+
 
 -------------------------------------------------------------------------------------------------------------------------------
