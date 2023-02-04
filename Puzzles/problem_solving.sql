@@ -857,3 +857,53 @@ GROUP BY (id - rownumber)
 HAVING COUNT(*) >= 3);
 
 -------------------------------------------------------------------------------------------------------------------------------
+'''
+Date  : 03-Feb-2023
+Author: Senthil Kumar ("The Alien") Kanagaraj
+
+Platform: LeedCode
+Compressed Mode [Alibaba SQL Interview Question]
+Difficulty: Medium
+
+You are trying to find the most common (aka the mode) number of items bought per order on Alibaba.
+
+However, instead of doing analytics on all Alibaba orders, you have access to a summary table, which describes how many items were in an order (item_count), 
+and the number of orders that had that many items (order_occurrences).
+
+In case of multiple item counts, display the item_counts in ascending order.
+
+items_per_order Table:
+Column Name	Type
+item_count	integer
+order_occurrences	integer
+items_per_order Example Input:
+item_count	order_occurrences
+1	500
+2	1000
+3	800
+4	1000
+Example Output:
+mode
+2
+4
+Explanation
+The most common number of order_occurrences is 1000. Both item counts of 2 and 4 fit this.
+
+'''
+-- Solution
+WITH ORDER_OCCUR AS
+(
+  SELECT order_occurrences, COUNT(order_occurrences) TOTAL_ORDER_OCCUR
+  FROM ITEMS_PER_ORDER
+  GROUP BY order_occurrences
+)
+SELECT ITEM_COUNT 
+FROM ITEMS_PER_ORDER IP
+JOIN ORDER_OCCUR OC
+ON IP.order_occurrences = OC.order_occurrences
+WHERE TOTAL_ORDER_OCCUR IN
+(SELECT MAX(TOTAL_ORDER_OCCUR) FROM ORDER_OCCUR)
+AND IP.order_occurrences IN
+(SELECT MAX(order_occurrences) FROM ORDER_OCCUR)
+
+-------------------------------------------------------------------------------------------------------------------------------
