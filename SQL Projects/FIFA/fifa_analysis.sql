@@ -334,17 +334,17 @@ order by year;
 -- 26. Total number of goals by each players.
 select * from worldcupplayers where event is not null;
 
-select playername, event, length(event) len
-from worldcupplayers
-where event is not null
-order by len desc;
-
-Select teaminitials, playername, count(event) total_goals
-from worldcupplayers
-where event like '%G%'
+with goal_details as
+(
+	select teaminitials, playername, event, unnest(string_to_array(event, ' ')) goal
+	from worldcupplayers
+	where event is not null and event like '%G%'
+	order by playername, goal
+)
+select teaminitials, playername, count(goal) total_goals
+from goal_details
+where goal like 'G%'
 group by teaminitials, playername
-having count(event)>0
+having count(goal)>0
 order by total_goals desc;
-
-
 
