@@ -217,5 +217,65 @@ where stadium is not null
 group by stadium
 order by stadium asc;
 
--- 19. Match outcome by home and away temas
-select * from worldcupmatches
+-- 17. Match outcome by home and away teams
+
+with match_status as
+(
+	select hometeamname, hometeamgoals, awayteamgoals, awayteamname, winconditions,
+	   	   case when hometeamgoals > awayteamgoals then concat(hometeamname, '-', 'Home Team') 
+	   	   		when hometeamgoals < awayteamgoals then concat(awayteamname, '-', 'Away Team')
+				else 'Draw'
+	   	   end as "winner"
+	from worldcupmatches
+	where hometeamname is not null
+)
+select count(*) Total_matches,
+	   count(case when winner like '%Home%' then 1 end) as "Home",
+	   count(case when winner like '%Away%' then 1 end) as "Away",
+	   count(case when winner like '%Draw%' then 1 end) as "Draw"
+from match_status;
+
+-- 18. Coach who managed most number of matches.
+select teaminitials, coachname, count(distinct matchid) total_matches
+from worldcupplayers
+group by teaminitials, coachname
+order by teaminitials, total_matches desc;
+
+-- 19. Player who played most number of the matches
+select teaminitials, playername, count(playername) total_matches
+from worldcupplayers
+group by teaminitials, playername
+order by total_matches desc
+
+-- 20. Get the player from each country who played most matches for their country
+with match_count as
+(
+	select teaminitials, playername, count(playername) total_matches,
+	RANK() OVER (partition by teaminitials order by count(playername) desc) rank_position
+	from worldcupplayers
+	group by teaminitials, playername
+	order by total_matches desc	
+)
+select teaminitials, playername, total_matches, rank_position
+	   --RANK() OVER (partition by teaminitials order by total_matches desc) rank_position
+from match_count
+where rank_position = 1
+
+
+-- 21. Total number of goals by each players.
+select * from worldcupplayers where event is not null;
+
+select playername, event
+from worldcupplayers
+where event is not null;
+
+
+Select teaminitials, playername, count(event) total_goals
+from worldcupplayers
+where event like '%G%'
+group by teaminitials, playername
+having count(event)>0
+order by total_goals desc;
+
+
+
