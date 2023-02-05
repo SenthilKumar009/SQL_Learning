@@ -262,13 +262,82 @@ from match_count
 where rank_position = 1
 
 
--- 21. Total number of goals by each players.
+-- 21. Total Number of Yellow Cards by country wise;
+select teaminitials, count(event) total_yellow_cards
+from worldcupplayers 
+where event like '%Y%'
+group by teaminitials
+order by total_yellow_cards desc;
+
+
+-- 22. Total numer of yellow cards by world cup wise
+with card_data as
+(
+	select w.year, w.stage, p.matchid, count(p.event) total_yellow_cards
+	from worldcupplayers p
+	join worldcupmatches w
+	on p.matchid = w.matchid
+	where p.event like '%Y%'
+	group by year, stage, p.matchid
+	order by year asc
+)
+select year, sum(total_yellow_cards) yellow_cards
+ from card_data
+ group by year
+ order by year;
+
+
+-- 23. Total Number of Red Cards by country wise;
+select teaminitials, count(event) total_yellow_cards
+from worldcupplayers 
+where event like '%R%'
+group by teaminitials
+order by total_yellow_cards desc;
+
+
+-- 24. Total Red cards by Countries
+select * from worldcupplayers where event like '%Y%' order by matchid ;
+
+with card_data as
+(
+	select w.year, w.stage, p.matchid, count(p.event) total_yellow_cards
+	from worldcupplayers p
+	join worldcupmatches w
+	on p.matchid = w.matchid
+	where p.event like '%R%'
+	group by year, stage, p.matchid
+	order by year asc
+)
+select year, sum(total_yellow_cards) yellow_cards
+from card_data
+group by year
+order by year;
+
+-- 25. Total Penalties by Countries
+Select * from worldcupplayers where event is not null;
+
+with card_data as
+(
+	select w.year, w.stage, p.matchid, count(p.event) total_yellow_cards
+	from worldcupplayers p
+	join worldcupmatches w
+	on p.matchid = w.matchid
+	where p.event like '%P%'
+	group by year, stage, p.matchid
+	order by year asc
+)
+select year, sum(total_yellow_cards) yellow_cards
+from card_data
+group by year
+order by year;
+
+-- 26. Total number of goals by each players.
 select * from worldcupplayers where event is not null;
 
-select playername, event
+select playername, event, length(event) len
 from worldcupplayers
-where event is not null;
-
+where event is not null
+order by len desc;
 
 Select teaminitials, playername, count(event) total_goals
 from worldcupplayers
