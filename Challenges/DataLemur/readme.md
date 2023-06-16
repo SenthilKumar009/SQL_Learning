@@ -18,3 +18,32 @@ where tweet_year = 2022
 GROUP BY total_tweets
 ```
 <img width="763" height="150" alt="image" src="https://github.com/SenthilKumar009/SQL_Learning/assets/24444578/a7c331e2-72e4-4104-8f66-98dde5e6eaaf">
+
+
+## Question 2:
+### Cards Issued Difference [JPMorgan Chase SQL Interview Question]
+
+Refer the below link for detailed question.
+https://datalemur.com/questions/cards-issued-difference
+
+### Solution:
+
+```
+WITH min_amt as(
+  SELECT card_name, min(issued_amount) min_sales
+  FROM monthly_cards_issued
+  group by card_name  
+),
+max_amt as(
+  SELECT card_name, max(issued_amount) max_sales
+  FROM monthly_cards_issued
+  group by card_name  
+)
+select min_amt.card_name,  max_sales - min_sales as difference
+from min_amt
+JOIN max_amt
+ON min_amt.card_name = max_amt.card_name
+order by difference desc
+```
+<img width="763" height="150" alt="image" src="https://github.com/SenthilKumar009/SQL_Learning/assets/24444578/0f20cbcb-abca-452d-835d-a525a8580f8a">
+
