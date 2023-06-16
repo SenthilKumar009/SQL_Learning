@@ -1,4 +1,11 @@
 ## Question 1:
+Histogram of Tweets [Twitter SQL Interview Question]
+
+```
+Difficulty    : Easy
+Resolved Date : 16 July 2023
+```
+
 Refer the below link for detailed question
 ### https://datalemur.com/questions/sql-histogram-tweets
 
@@ -22,6 +29,11 @@ GROUP BY total_tweets
 
 ## Question 2:
 ### Cards Issued Difference [JPMorgan Chase SQL Interview Question]
+
+```
+Difficulty    : Easy
+Resolved Date : 16 July 2023
+```
 
 Refer the below link for detailed question.
 https://datalemur.com/questions/cards-issued-difference
