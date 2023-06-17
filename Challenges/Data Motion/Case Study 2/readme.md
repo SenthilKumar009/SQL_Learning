@@ -125,11 +125,11 @@ on e.department_id = d.id
 
 ```
 select e.id emp_id, d.id dept_id, e.name, e.hire_date, d.name dept_name,
-	   e.hire_date - lag(e.hire_date) over (order_by e.hire_date) as join_diff_date
+	   abs(lag(e.hire_date) over (partition by d.id order by e.id) - e.hire_date - 1) as gap
 from employees e
 join departments d
 on e.department_id = d.id
 --group by d.id
---order by d.id, e.id, e.hire_date
+order by d.id, e.id, e.hire_date
 
 ```

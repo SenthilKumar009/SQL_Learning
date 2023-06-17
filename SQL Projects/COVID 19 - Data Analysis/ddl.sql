@@ -1,0 +1,45 @@
+
+drop table coviddeaths;
+
+create table covidDeaths(
+	iso_code char(3),
+	continent varchar(100),
+	location varchar(100),
+	date date,
+	population numeric(10),
+	new_tests numeric(10),
+	total_tests	numeric(10),
+	total_tests_per_thousand numeric(10,2),
+	new_tests_per_thousand numeric(10,2),
+	new_tests_smoothed numeric(10),
+	new_tests_smoothed_per_thousand numeric(10,2),
+	positive_rate numeric(10,2),
+	tests_per_case numeric(10,2),
+	tests_units varchar(100),
+	total_vaccinations numeric(10),
+	people_vaccinated numeric(10),
+	people_fully_vaccinated numeric(10),	
+	new_vaccinations numeric(10),
+	new_vaccinations_smoothed numeric(10,2),
+	total_vaccinations_per_hundred numeric(10,2),
+	people_vaccinated_per_hundred numeric(10,2),
+	people_fully_vaccinated_per_hundred	numeric(10,2),
+	new_vaccinations_smoothed_per_million numeric(10,2),
+	stringency_index numeric(10,2),
+	population_density numeric(10,3),
+	median_age numeric(10),
+	aged_65_older numeric(10,2),
+	aged_70_older numeric(10,2),
+	gdp_per_capita numeric(10,2),
+	extreme_poverty numeric(10,2),
+	cardiovasc_death_rate numeric(10,3),
+	diabetes_prevalence numeric(10,2),
+	female_smokers numeric(10,2),
+	male_smokers numeric(10,2),
+	handwashing_facilities numeric(10,2),
+	hospital_beds_per_thousand numeric(10,2),
+	life_expectancy numeric(10,2),
+	human_development_index numeric(10,3)
+);
+
+select * from coviddeaths;
