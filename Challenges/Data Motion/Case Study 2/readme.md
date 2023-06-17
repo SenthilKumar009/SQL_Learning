@@ -77,9 +77,22 @@ WHERE name = 'Sales';
 --1. Find the longest ongoing project for each department.
 
 ```
-select name, max(end_date - start_date) total_days
-from projects
-group by name;
+with project_duration as(
+	select p.department_id dept_id, p.name project_name, p.start_date, p.end_date, 
+  		   end_date - start_date total_days
+    from projects p
+	where p.end_date > current_date
+),
+rank_data as(
+  select p.dept_id, p.project_name, p.total_days,
+	     rank () over (partition by p.dept_id order by total_days desc) as rank
+  from project_duration p
+)
+select d.name, r.project_name, r.total_days
+from rank_data r
+join departments d
+on d.id = r.dept_id
+where rank = 1
 ```
 
 --2. Find all employees who are not managers.
