@@ -1,4 +1,4 @@
-# Case Study 2
+# SQL Case Study 2: Human Resources
 
 -- Create 'departments' table
 ```
