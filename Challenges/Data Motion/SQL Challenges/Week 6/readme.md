@@ -1,3 +1,4 @@
+## Week 6
 > Source: https://pgexercises.com/questions/joins/threejoin2.html
 
 > Question:  Produce a count of the number of facilities that have a cost to guests of 10 or more.
