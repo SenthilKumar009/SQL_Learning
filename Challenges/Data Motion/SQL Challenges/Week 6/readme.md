@@ -42,3 +42,18 @@ where starttime >='2012-09-01' and starttime < '2012-10-01'
 group by facid
 order by totalslots
 ```
+
+> Source: https://pgexercises.com/questions/joins/threejoin.html
+
+> How can you produce a list of all members who have used a tennis court? Include in your output the name of the court, and the name of the member formatted as a single column. Ensure no duplicate data, and order by the member name followed by the facility name.
+
+```
+select distinct m.firstname || ' ' || m.surname as member, f.name as facility
+from cd.bookings b
+join cd.members m
+on b.memid = m.memid
+join cd.facilities f
+on b.facid = f.facid
+where f.name like 'Tennis%'
+order by member, facility
+```
