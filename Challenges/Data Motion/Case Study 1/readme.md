@@ -118,7 +118,7 @@ INSERT INTO order_items (order_id, product_id, quantity) VALUES
 
 --1) Which product has the highest price? Only return a single row.
 ```
-select product_name from products where price in (select max(price) from products)
+select * from products where price in (select max(price) from products)
 ```
 
 --2) Which customer has made the most orders?
