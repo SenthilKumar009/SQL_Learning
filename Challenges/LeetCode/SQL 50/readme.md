@@ -123,6 +123,62 @@ join
  group by managerid
  having count(managerid >= 5)) t2
  on t1.id = t2.managerid
+
+
+select name 
+from employee where id in 
+(select managerid
+ from employee
+ group by managerid
+ having count(managerid) >= 5)
 ```
 
 > 14. 
+```
+select s.user_id, CASE WHEN c.time_stamp is null
+then 0.00
+else round(sum(c.action='confirmed')/count(*),2)
+end as confirmation_rate
+from Signups s
+left join Confirmations c
+on s.user_id = c.user_id
+group by s.user_id
+```
+
+> 15. 620. Not Boring Movies
+
+```
+select * from cinema
+where mod(id,2) = 1 and description <> 'Boring'
+order by rating desc
+```
+
+> 16. 1251. Average Selling Price
+
+```
+select p.product_id, round(sum(price*units)/ sum(units),2) average_price 
+from prices p, unitssold u
+where p.product_id = u.product_id
+and purchase_date between start_date and end_date
+group by product_id
+```
+
+> 17. Project Employees I
+
+```
+Select p.project_id, round(avg(e.experience_years),2) average_years 
+from project p
+left outer join employee e
+on p.employee_id = e.employee_id
+group by p.project_id
+```
+
+>18. 1633. Percentage of Users Attended a Contest
+
+```
+select contest_id, round(count(contest_id)/(select count(*) from users)*100.0, 2) percentage 
+from register
+group by contest_id
+order by 2 desc, 1 asc
+```
+
