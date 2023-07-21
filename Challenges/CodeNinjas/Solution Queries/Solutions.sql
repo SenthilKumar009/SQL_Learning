@@ -39,10 +39,6 @@ select g.genre, max((e.domestic + e.worldwide) - i.budget) as net_profit
 	
 /* 4. Print the genre and maximum weighted rating among all the movies of the genre released in 2014 per genre. */
 
-select * from imdb;
-select * from genre;
-select * from earning;
-
 select g.genre, max(round((i.rating + COALESCE(i.metacritic,0)/10.0)/2,2)) as weighted_rating
 from imdb i
 join genre g
@@ -57,4 +53,29 @@ where genre is not null and title like '%(2014)%'
 group by genre 
 order by genre  
 
+/* 5. Swap Sex*/
 
+select * from salary;
+
+update salary 
+set sex = case when sex  = 'f' then 'm' else  'f' end;
+
+select * from salary;
+
+/* 6. Write a SQL solution to output big countries' name, population, and area */
+
+select * from world;
+
+select name, population, area
+from world 
+where area > 3000000 or population > 25000000;
+
+/* 7. Find the second highest salary*/
+
+with rank_salary as(
+    select s.*,
+    row_number() over (order by salary desc) as rnk
+    from employee s
+)
+select salary
+from rank_salary where rnk = 2

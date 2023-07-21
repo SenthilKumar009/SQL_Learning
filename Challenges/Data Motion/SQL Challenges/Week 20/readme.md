@@ -26,5 +26,12 @@ GROUP BY app_id;;
 > Solution: 
 
 ```
-
+SELECT u.city, count(t.status) total_orders 
+FROM trades t
+join users u
+on t.user_id = u.user_id
+where t.status = 'Completed'
+group by u.city, t.status
+order by total_orders desc
+limit 3
 ```
